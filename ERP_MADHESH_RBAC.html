@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VK Group Corporate ERP - Role-Based Access Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #f1f5f9 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            animation: slideDown 0.5s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--white);
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .logo i {
+            font-size: 28px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-center a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-center a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--white);
+            transition: width 0.3s ease;
+        }
+
+        .nav-center a:hover:after {
+            width: 100%;
+        }
+
+        .nav-center a.disabled-nav {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--white);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .user-avatar:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn:hover:not(.btn-disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover:not(.btn-disabled) {
+            background: var(--primary-dark);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn-success:hover:not(.btn-disabled) {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover:not(.btn-disabled) {
+            background: #dc2626;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--white);
+            color: var(--white);
+        }
+
+        .btn-outline:hover:not(.btn-disabled) {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        /* Login Page */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-bg-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out 0.1s both;
+        }
+
+        .login-header h1 {
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .role-info {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--dark);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Main Dashboard */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .page-header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .access-level-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+        }
+
+        .tab-btn:hover:not(.disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .tab-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--light);
+        }
+
+        .lock-icon {
+            margin-left: 5px;
+            font-size: 10px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+            margin-bottom: 20px;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        /* Table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+        }
+
+        .table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .table tr:hover {
+            background: var(--light);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+
+        /* Restricted Access Message */
+        .restricted-access {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+            border: 2px solid var(--danger);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .restricted-access i {
+            font-size: 48px;
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .restricted-access h3 {
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .restricted-access p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Permission Info Box */
+        .permission-info {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .permission-info i {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .permission-info-content {
+            flex: 1;
+        }
+
+        .permission-info-title {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .permission-info-desc {
+            font-size: 12px;
+            color: var(--dark);
+            margin-top: 3px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-info {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 60px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Scroll to Top */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .scroll-top.show {
+            display: flex;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .scroll-top:hover {
+            background: var(--primary-dark);
+            transform: translateY(-5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                height: auto;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .nav-center {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .login-card {
+                padding: 30px;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .tabs-container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo" onclick="goToHome()">
+            <i class="fas fa-layer-group"></i>
+            <span>VK Group ERP</span>
+        </div>
+        <div class="nav-center">
+            <a id="navOverview" onclick="switchTab('overview')">Dashboard</a>
+            <a id="navEmployees" onclick="switchTab('employees')">Employees</a>
+            <a id="navDepartments" onclick="switchTab('departments')">Departments</a>
+            <a id="navFinance" onclick="switchTab('finance')">Finance</a>
+            <a id="navWork" onclick="switchTab('work')">Tasks</a>
+            <a id="navRecruitment" onclick="switchTab('recruitment')">Recruitment</a>
+        </div>
+        <div class="user-menu">
+            <div class="user-info">
+                <div class="user-name" id="userName">Welcome!</div>
+                <div class="user-role" id="userRole">User</div>
+            </div>
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-bg-shapes">
+            <div class="shape" style="width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.1); top: -150px; left: -150px;"></div>
+            <div class="shape" style="width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.1); bottom: -100px; right: -100px;"></div>
+        </div>
+
+        <div class="login-card">
+            <div class="login-header">
+                <h1><i class="fas fa-building"></i> VK Group ERP</h1>
+                <p>Role-Based Access Control System</p>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="role-info">
+                <strong>ℹ️ Role Information:</strong><br>
+                Higher positions can see and manage more features. Lower positions have restricted access based on their authorization level.
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-briefcase"></i> Select Your Designation</label>
+                    <select id="role" required>
+                        <option value="">Choose your role...</option>
+                        <optgroup label="Executive Level - FOUNDER/OWNER/CHAIRMAN (Madhesh)">
+                            <option value="owner">1. Owner / Founder - Madhesh (Full Access)</option>
+                            <option value="founder">1. Founder - Madhesh (Full Access)</option>
+                            <option value="chairman">2. Chairman - Madhesh (Full Access)</option>
+                        </optgroup>
+                        <optgroup label="Executive Level">
+                            <option value="ceo">3. CEO - Full Access</option>
+                        </optgroup>
+                        <optgroup label="Management Level">
+                            <option value="cto">4. CTO - High Access</option>
+                            <option value="cfo">4. CFO - High Access</option>
+                            <option value="coo">4. COO - High Access</option>
+                            <option value="vp">5. Vice President - High Access</option>
+                            <option value="director">6. Director - Medium Access</option>
+                        </optgroup>
+                        <optgroup label="Supervisory Level">
+                            <option value="senior_manager">7. Senior Manager - Medium Access</option>
+                            <option value="manager">8. Manager - Medium Access</option>
+                            <option value="team_leader">9. Team Leader - Limited Access</option>
+                        </optgroup>
+                        <optgroup label="Staff Level">
+                            <option value="senior_employee">10. Senior Employee - Limited Access</option>
+                            <option value="employee">11. Employee - Restricted Access</option>
+                            <option value="junior_employee">12. Junior Employee - Restricted Access</option>
+                            <option value="intern">13. Intern - Very Limited Access</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="your.email@vkgroup.com" value="madhesh@vkgroup.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Enter password" value="123456" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 20px;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 20px; color: var(--gray); font-size: 12px;">
+                👤 <strong>Madhesh</strong> - Owner/Founder/Chairman<br>
+                Demo: madhesh@vkgroup.com / 123456 | Try different roles to see access differences
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="hidden">
+        <div class="main-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h1 id="pageTitle"><i class="fas fa-chart-line"></i> Dashboard</h1>
+                        <p id="pageSubtitle">Welcome to VK Group Corporate ERP System</p>
+                    </div>
+                    <div class="access-level-badge" id="accessBadge">
+                        <i class="fas fa-check-circle"></i> Your Access Level
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <button class="tab-btn active" id="tab-overview" onclick="switchTab('overview')">
+                    <i class="fas fa-home"></i> Overview
+                </button>
+                <button class="tab-btn" id="tab-employees" onclick="switchTab('employees')">
+                    <i class="fas fa-users"></i> Employees
+                </button>
+                <button class="tab-btn" id="tab-departments" onclick="switchTab('departments')">
+                    <i class="fas fa-building"></i> Departments
+                </button>
+                <button class="tab-btn" id="tab-finance" onclick="switchTab('finance')">
+                    <i class="fas fa-chart-bar"></i> Finance
+                </button>
+                <button class="tab-btn" id="tab-work" onclick="switchTab('work')">
+                    <i class="fas fa-tasks"></i> Tasks
+                </button>
+                <button class="tab-btn" id="tab-recruitment" onclick="switchTab('recruitment')">
+                    <i class="fas fa-briefcase"></i> Recruitment
+                </button>
+                <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="stats-grid" id="statsContainer"></div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-info-circle"></i> Your Access Permissions</div>
+                    </div>
+                    <div id="permissionsInfo"></div>
+                </div>
+            </div>
+
+            <!-- Employees Tab -->
+            <div id="employees" class="tab-content"></div>
+
+            <!-- Departments Tab -->
+            <div id="departments" class="tab-content"></div>
+
+            <!-- Finance Tab -->
+            <div id="finance" class="tab-content"></div>
+
+            <!-- Tasks Tab -->
+            <div id="work" class="tab-content"></div>
+
+            <!-- Recruitment Tab -->
+            <div id="recruitment" class="tab-content"></div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-user"></i> Account Settings</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <p style="color: var(--gray); font-size: 13px;">Name: <strong id="settingsName">Madhesh</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Email: <strong id="settingsEmail">madhesh@vkgroup.com</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Role: <strong id="settingsRole">Owner</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Level: <strong id="settingsLevel">1</strong></p>
+                        </div>
+                        <button class="btn btn-danger" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>VK Group Corporate ERP System - Role-Based Access Control</h3>
+            <p>&copy; 2026 VK Group Industries. All rights reserved.</p>
+            <p style="font-size: 12px; margin-top: 10px;">Developed with ❤️ for Madhesh - Owner/Founder/Chairman</p>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top -->
+    <button class="scroll-top" id="scrollTop" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        /**
+         * ==================== ROLE-BASED ACCESS CONTROL SYSTEM ====================
+         * 
+         * MADHESH - OWNER / FOUNDER / CHAIRMAN
+         * 🔓 FULL EXECUTIVE ACCESS - Can access all features
+         * 
+         * This system implements a hierarchical role-based access control (RBAC)
+         * where each role has specific permissions that determine what features
+         * they can access in the ERP system.
+         */
+
+        const hierarchy = {
+            owner: {
+                level: 1,
+                name: 'Owner / Founder - Madhesh',
+                description: 'Full system access - All features available',
+                email: 'madhesh@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: true,
+                    canViewDepartments: true,
+                    canEditDepartments: true,
+                    canViewFinance: true,
+                    canEditFinance: true,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: true,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: true,
+                    canViewReports: true,
+                    canApproveRequests: true,
+                    canManageUsers: true
+                }
+            },
+            founder: {
+                level: 1,
+                name: 'Founder - Madhesh',
+                description: 'Full system access - All features available',
+                email: 'madhesh@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: true,
+                    canViewDepartments: true,
+                    canEditDepartments: true,
+                    canViewFinance: true,
+                    canEditFinance: true,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: true,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: true,
+                    canViewReports: true,
+                    canApproveRequests: true,
+                    canManageUsers: true
+                }
+            },
+            chairman: {
+                level: 2,
+                name: 'Chairman - Madhesh',
+                description: 'Full system access - All features available',
+                email: 'madhesh@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: true,
+                    canViewFinance: true,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: true,
+                    canViewReports: true,
+                    canApproveRequests: true,
+                    canManageUsers: false
+                }
+            },
+            ceo: {
+                level: 3,
+                name: 'Chief Executive Officer',
+                description: 'Full system access',
+                email: 'ceo@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: true,
+                    canViewFinance: true,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: true,
+                    canViewReports: true,
+                    canApproveRequests: true,
+                    canManageUsers: false
+                }
+            },
+            cto: {
+                level: 4,
+                name: 'Chief Technology Officer',
+                description: 'High access - Tech division',
+                email: 'cto@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            cfo: {
+                level: 4,
+                name: 'Chief Financial Officer',
+                description: 'High access - Finance division',
+                email: 'cfo@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: false,
+                    canViewFinance: true,
+                    canEditFinance: true,
+                    canViewWork: true,
+                    canCreateWork: false,
+                    canEditWork: false,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: false,
+                    canViewReports: true,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            coo: {
+                level: 4,
+                name: 'Chief Operating Officer',
+                description: 'High access - Operations division',
+                email: 'coo@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: true,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: true,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            vp: {
+                level: 5,
+                name: 'Vice President',
+                description: 'High access - Department level',
+                email: 'vp@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: true,
+                    canDeleteEmployees: false,
+                    canViewDepartments: true,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: true,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            director: {
+                level: 6,
+                name: 'Director',
+                description: 'Medium access - Project level',
+                email: 'director@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: true,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            senior_manager: {
+                level: 7,
+                name: 'Senior Manager',
+                description: 'Medium access - Team level',
+                email: 'smanager@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            manager: {
+                level: 8,
+                name: 'Manager',
+                description: 'Medium access - Direct reports',
+                email: 'manager@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            team_leader: {
+                level: 9,
+                name: 'Team Leader',
+                description: 'Limited access - Own tasks',
+                email: 'tleader@vkgroup.com',
+                permissions: {
+                    canViewDashboard: false,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: true,
+                    canEditWork: true,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            senior_employee: {
+                level: 10,
+                name: 'Senior Employee',
+                description: 'Limited access - Own work',
+                email: 'senioremployee@vkgroup.com',
+                permissions: {
+                    canViewDashboard: false,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: false,
+                    canEditWork: false,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            employee: {
+                level: 11,
+                name: 'Employee',
+                description: 'Very restricted - View only',
+                email: 'employee@vkgroup.com',
+                permissions: {
+                    canViewDashboard: false,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: false,
+                    canEditWork: false,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            junior_employee: {
+                level: 12,
+                name: 'Junior Employee',
+                description: 'Very restricted - View only',
+                email: 'junioremployee@vkgroup.com',
+                permissions: {
+                    canViewDashboard: false,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: true,
+                    canCreateWork: false,
+                    canEditWork: false,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            },
+            intern: {
+                level: 13,
+                name: 'Intern / Trainee',
+                description: 'Minimal access - Dashboard only',
+                email: 'intern@vkgroup.com',
+                permissions: {
+                    canViewDashboard: true,
+                    canViewEmployees: false,
+                    canEditEmployees: false,
+                    canDeleteEmployees: false,
+                    canViewDepartments: false,
+                    canEditDepartments: false,
+                    canViewFinance: false,
+                    canEditFinance: false,
+                    canViewWork: false,
+                    canCreateWork: false,
+                    canEditWork: false,
+                    canDeleteWork: false,
+                    canViewRecruitment: false,
+                    canCreateRecruitment: false,
+                    canViewReports: false,
+                    canApproveRequests: false,
+                    canManageUsers: false
+                }
+            }
+        };
+
+        let currentUser = null;
+        let currentRole = null;
+        let currentLevel = 0;
+        let currentPermissions = {};
+
+        // ==================== AUTHENTICATION ====================
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!role || !email || !password) {
+                showAlert('Please fill all fields', 'danger');
+                return;
+            }
+
+            // Set current user
+            currentRole = role;
+            currentUser = email;
+            currentLevel = hierarchy[role].level;
+            currentPermissions = hierarchy[role].permissions;
+
+            // Save to localStorage
+            localStorage.setItem('user', JSON.stringify({ 
+                role, 
+                email, 
+                level: hierarchy[role].level, 
+                name: hierarchy[role].name 
+            }));
+
+            // Switch to dashboard
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+
+            // Update navbar
+            document.getElementById('userName').textContent = hierarchy[role].name;
+            document.getElementById('userRole').textContent = `Level ${hierarchy[role].level} - ${hierarchy[role].description}`;
+
+            // Update nav links visibility
+            updateNavigation();
+
+            // Load dashboard
+            loadDashboard();
+
+            showAlert(`Welcome, ${hierarchy[role].name}! 🎉`, 'success');
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            currentUser = null;
+            currentRole = null;
+            currentLevel = 0;
+            currentPermissions = {};
+            
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('dashboardPage').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('role').value = '';
+            document.getElementById('email').value = 'madhesh@vkgroup.com';
+            document.getElementById('password').value = '123456';
+            
+            showAlert('Logged out successfully', 'success');
+        }
+
+        // ==================== NAVIGATION CONTROL ====================
+        function updateNavigation() {
+            const navItems = [
+                { id: 'navOverview', permission: 'canViewDashboard' },
+                { id: 'navEmployees', permission: 'canViewEmployees' },
+                { id: 'navDepartments', permission: 'canViewDepartments' },
+                { id: 'navFinance', permission: 'canViewFinance' },
+                { id: 'navWork', permission: 'canViewWork' },
+                { id: 'navRecruitment', permission: 'canViewRecruitment' }
+            ];
+
+            navItems.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (currentPermissions[item.permission]) {
+                    element.classList.remove('disabled-nav');
+                } else {
+                    element.classList.add('disabled-nav');
+                }
+            });
+
+            const tabItems = [
+                { id: 'tab-overview', permission: 'canViewDashboard' },
+                { id: 'tab-employees', permission: 'canViewEmployees' },
+                { id: 'tab-departments', permission: 'canViewDepartments' },
+                { id: 'tab-finance', permission: 'canViewFinance' },
+                { id: 'tab-work', permission: 'canViewWork' },
+                { id: 'tab-recruitment', permission: 'canViewRecruitment' }
+            ];
+
+            tabItems.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (currentPermissions[item.permission]) {
+                    element.classList.remove('disabled');
+                } else {
+                    element.classList.add('disabled');
+                }
+            });
+        }
+
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tabName) {
+            const permissionMap = {
+                'overview': 'canViewDashboard',
+                'employees': 'canViewEmployees',
+                'departments': 'canViewDepartments',
+                'finance': 'canViewFinance',
+                'work': 'canViewWork',
+                'recruitment': 'canViewRecruitment',
+                'settings': true
+            };
+
+            if (permissionMap[tabName] !== true && !currentPermissions[permissionMap[tabName]]) {
+                showAlert(`🔒 You don't have permission to access ${tabName}`, 'danger');
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const tabElement = document.getElementById(tabName);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+
+            const tabBtn = document.getElementById(`tab-${tabName}`);
+            if (tabBtn) {
+                tabBtn.classList.add('active');
+            }
+
+            loadTabContent(tabName);
+
+            const titles = {
+                'overview': { title: '📊 Dashboard Overview', subtitle: 'Your personalized dashboard' },
+                'employees': { title: '👥 Employee Management', subtitle: 'Manage workforce (Limited by your role)' },
+                'departments': { title: '🏢 Departments', subtitle: 'Department information and structure' },
+                'finance': { title: '💰 Financial Data', subtitle: 'Financial overview and analysis' },
+                'work': { title: '📋 Task Management', subtitle: 'Create and manage tasks' },
+                'recruitment': { title: '💼 Recruitment', subtitle: 'Manage job postings and applications' },
+                'settings': { title: '⚙️ Settings', subtitle: 'Account and system settings' }
+            };
+
+            if (titles[tabName]) {
+                document.getElementById('pageTitle').innerHTML = titles[tabName].title;
+                document.getElementById('pageSubtitle').textContent = titles[tabName].subtitle;
+            }
+        }
+
+        function goToHome() {
+            if (currentPermissions.canViewDashboard) {
+                switchTab('overview');
+            } else {
+                switchTab('work');
+            }
+        }
+
+        // ==================== CONTENT LOADING ====================
+        function loadTabContent(tabName) {
+            const content = document.getElementById(tabName);
+            
+            switch(tabName) {
+                case 'overview':
+                    loadOverview(content);
+                    break;
+                case 'employees':
+                    loadEmployees(content);
+                    break;
+                case 'departments':
+                    loadDepartments(content);
+                    break;
+                case 'finance':
+                    loadFinance(content);
+                    break;
+                case 'work':
+                    loadWork(content);
+                    break;
+                case 'recruitment':
+                    loadRecruitment(content);
+                    break;
+                case 'settings':
+                    loadSettings(content);
+                    break;
+            }
+        }
+
+        function loadDashboard() {
+            updateAccessBadge();
+            switchTab(currentPermissions.canViewDashboard ? 'overview' : 'work');
+        }
+
+        function updateAccessBadge() {
+            const badge = document.getElementById('accessBadge');
+            const levels = {
+                1: { text: '🔓 Full Executive Access', bg: 'linear-gradient(135deg, #ef4444, #dc2626)' },
+                2: { text: '🔓 Full Executive Access', bg: 'linear-gradient(135deg, #ef4444, #dc2626)' },
+                3: { text: '🔓 Full Executive Access', bg: 'linear-gradient(135deg, #ef4444, #dc2626)' },
+                4: { text: '🔐 High Management Access', bg: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                5: { text: '🔐 High Management Access', bg: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                6: { text: '🔐 Medium Access', bg: 'linear-gradient(135deg, #10b981, #059669)' },
+                7: { text: '🔐 Medium Access', bg: 'linear-gradient(135deg, #10b981, #059669)' },
+                8: { text: '🔐 Medium Access', bg: 'linear-gradient(135deg, #10b981, #059669)' },
+                9: { text: '🔒 Limited Access', bg: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                10: { text: '🔒 Limited Access', bg: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                11: { text: '🔒 Limited Access', bg: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                12: { text: '🔒 Very Limited Access', bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' },
+                13: { text: '🔒 Minimal Access', bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }
+            };
+
+            const levelInfo = levels[currentLevel];
+            badge.innerHTML = levelInfo.text;
+            badge.style.background = levelInfo.bg;
+        }
+
+        // ==================== LOAD OVERVIEW ====================
+        function loadOverview(content) {
+            if (!currentPermissions.canViewDashboard) {
+                content.innerHTML = getRestrictedAccessMessage('Dashboard Overview', 'canViewDashboard');
+                return;
+            }
+
+            const stats = [
+                { icon: '👥', label: 'Team Members', value: '245', info: 'Total employees in organization' },
+                { icon: '🏢', label: 'Departments', value: '6', info: 'Active divisions' },
+                { icon: '📋', label: 'Active Tasks', value: '34', info: 'Ongoing projects' },
+                { icon: '✅', label: 'Completed', value: '128', info: 'This month' }
+            ];
+
+            let html = '<div class="stats-grid">';
+            stats.forEach(stat => {
+                html += `
+                    <div class="stat-card">
+                        <div class="stat-icon">${stat.icon}</div>
+                        <div class="stat-label">${stat.label}</div>
+                        <div class="stat-value">${stat.value}</div>
+                        <div class="stat-trend"><i class="fas fa-info-circle"></i> ${stat.info}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            html += getPermissionsInfo();
+
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD EMPLOYEES ====================
+        function loadEmployees(content) {
+            if (!currentPermissions.canViewEmployees) {
+                content.innerHTML = getRestrictedAccessMessage('Employee Management', 'canViewEmployees');
+                return;
+            }
+
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-users"></i> Employee Directory</div>
+                    </div>
+                    ${currentPermissions.canEditEmployees ? '<div class="permission-info"><i class="fas fa-check"></i><div class="permission-info-content"><div class="permission-info-title">Full Edit Access</div><div class="permission-info-desc">You can edit and manage employee records</div></div></div>' : '<div class="permission-info"><i class="fas fa-eye"></i><div class="permission-info-content"><div class="permission-info-title">View Only</div><div class="permission-info-desc">You can view employee information but cannot edit</div></div></div>'}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Level</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Madhesh (Owner)</strong></td>
+                                <td>madhesh@vkgroup.com</td>
+                                <td>Executive</td>
+                                <td>Owner/Founder/Chairman</td>
+                                <td><span class="badge badge-danger">Level 1</span></td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td><button class="btn btn-sm btn-primary ${!currentPermissions.canEditEmployees ? 'btn-disabled' : ''}">Edit</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Rajesh Kumar</strong></td>
+                                <td>ceo@vkgroup.com</td>
+                                <td>Executive</td>
+                                <td>CEO</td>
+                                <td><span class="badge badge-danger">Level 3</span></td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td><button class="btn btn-sm btn-primary ${!currentPermissions.canEditEmployees ? 'btn-disabled' : ''}">Edit</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Priya Sharma</strong></td>
+                                <td>cto@vkgroup.com</td>
+                                <td>Tech</td>
+                                <td>CTO</td>
+                                <td><span class="badge badge-warning">Level 4</span></td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td><button class="btn btn-sm btn-primary ${!currentPermissions.canEditEmployees ? 'btn-disabled' : ''}">Edit</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Amit Singh</strong></td>
+                                <td>manager@vkgroup.com</td>
+                                <td>Sales</td>
+                                <td>Manager</td>
+                                <td><span class="badge badge-primary">Level 8</span></td>
+                                <td><span class="badge badge-success">Active</span></td>
+                                <td><button class="btn btn-sm btn-primary ${!currentPermissions.canEditEmployees ? 'btn-disabled' : ''}">Edit</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD DEPARTMENTS ====================
+        function loadDepartments(content) {
+            if (!currentPermissions.canViewDepartments) {
+                content.innerHTML = getRestrictedAccessMessage('Departments', 'canViewDepartments');
+                return;
+            }
+
+            let html = `
+                <div class="permission-info">
+                    <i class="fas fa-building"></i>
+                    <div class="permission-info-content">
+                        <div class="permission-info-title">Department Overview</div>
+                        <div class="permission-info-desc">View department information and structures</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            `;
+
+            const depts = [
+                { name: 'VK Tech', employees: 45, budget: '₹1.2 Cr' },
+                { name: 'VK Finance', employees: 28, budget: '₹80 L' },
+                { name: 'VK Sales', employees: 35, budget: '₹95 L' },
+                { name: 'VK HR', employees: 18, budget: '₹45 L' },
+                { name: 'VK Operations', employees: 32, budget: '₹65 L' },
+                { name: 'VK Executive', employees: 12, budget: '₹80 L' }
+            ];
+
+            depts.forEach(dept => {
+                html += `
+                    <div class="card">
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 100px; border-radius: 10px; margin-bottom: 15px;"></div>
+                        <div class="card-title">${dept.name}</div>
+                        <p style="font-size: 13px; color: var(--gray); margin-bottom: 10px;">
+                            <i class="fas fa-users"></i> ${dept.employees} employees | <i class="fas fa-money-bill"></i> ${dept.budget}
+                        </p>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD FINANCE ====================
+        function loadFinance(content) {
+            if (!currentPermissions.canViewFinance) {
+                content.innerHTML = getRestrictedAccessMessage('Financial Data', 'canViewFinance');
+                return;
+            }
+
+            let html = `
+                ${currentPermissions.canEditFinance ? '<div class="permission-info"><i class="fas fa-check"></i><div class="permission-info-content"><div class="permission-info-title">Full Edit Access</div><div class="permission-info-desc">You can view and modify financial records</div></div></div>' : '<div class="permission-info"><i class="fas fa-eye"></i><div class="permission-info-content"><div class="permission-info-title">View Only</div><div class="permission-info-desc">You can view financial data but cannot modify</div></div></div>'}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div class="card">
+                        <div class="card-title">💰 Total Revenue</div>
+                        <div style="font-size: 28px; font-weight: 900; color: var(--success); margin: 10px 0;">₹42.5 Cr</div>
+                        <div style="font-size: 12px; color: var(--gray);">This Month</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">📉 Total Expenses</div>
+                        <div style="font-size: 28px; font-weight: 900; color: var(--danger); margin: 10px 0;">₹18.2 Cr</div>
+                        <div style="font-size: 12px; color: var(--gray);">This Month</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">📊 Net Profit</div>
+                        <div style="font-size: 28px; font-weight: 900; color: var(--primary); margin: 10px 0;">₹24.3 Cr</div>
+                        <div style="font-size: 12px; color: var(--gray);">This Month</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Financial Summary by Department</div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Revenue</th>
+                                <th>Expense</th>
+                                <th>Profit</th>
+                                <th>Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>VK Tech</strong></td>
+                                <td>₹1.2 Cr</td>
+                                <td>₹55 L</td>
+                                <td>₹65 L</td>
+                                <td>54.2%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>VK Finance</strong></td>
+                                <td>₹95 L</td>
+                                <td>₹50 L</td>
+                                <td>₹45 L</td>
+                                <td>47.4%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD WORK ====================
+        function loadWork(content) {
+            if (!currentPermissions.canViewWork) {
+                content.innerHTML = getRestrictedAccessMessage('Task Management', 'canViewWork');
+                return;
+            }
+
+            let html = `
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    ${currentPermissions.canCreateWork ? '<button class="btn btn-primary"><i class="fas fa-plus"></i> Create Task</button>' : ''}
+                    <select style="padding: 10px; border: 2px solid var(--border); border-radius: 8px;">
+                        <option>All Tasks</option>
+                        <option>Pending</option>
+                        <option>In Progress</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+
+                ${currentPermissions.canCreateWork ? '<div class="permission-info"><i class="fas fa-plus"></i><div class="permission-info-content"><div class="permission-info-title">Can Create Tasks</div><div class="permission-info-desc">You can create and assign tasks to team members</div></div></div>' : '<div class="permission-info"><i class="fas fa-eye"></i><div class="permission-info-content"><div class="permission-info-title">View Only</div><div class="permission-info-desc">You can view tasks but cannot create new ones</div></div></div>'}
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    <div class="card">
+                        <div class="card-title">Q1 Financial Report</div>
+                        <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">Prepare comprehensive financial analysis</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+                            <span class="badge badge-danger">High Priority</span>
+                            <span class="badge badge-warning">Pending</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Team Meeting</div>
+                        <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">Weekly sync with department heads</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+                            <span class="badge badge-primary">Medium</span>
+                            <span class="badge badge-primary">In Progress</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">System Upgrade</div>
+                        <p style="font-size: 13px; color: var(--gray); margin: 10px 0;">Upgrade ERP to latest version</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+                            <span class="badge badge-danger">High Priority</span>
+                            <span class="badge badge-success">Completed</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD RECRUITMENT ====================
+        function loadRecruitment(content) {
+            if (!currentPermissions.canViewRecruitment) {
+                content.innerHTML = getRestrictedAccessMessage('Recruitment', 'canViewRecruitment');
+                return;
+            }
+
+            let html = `
+                ${currentPermissions.canCreateRecruitment ? '<button class="btn btn-primary" style="margin-bottom: 20px;"><i class="fas fa-plus"></i> Post New Job</button>' : ''}
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Open Positions</div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Department</th>
+                                <th>Level</th>
+                                <th>Applications</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Senior Developer</strong></td>
+                                <td>Tech</td>
+                                <td>Level 7</td>
+                                <td>12</td>
+                                <td><span class="badge badge-success">Open</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Finance Manager</strong></td>
+                                <td>Finance</td>
+                                <td>Level 8</td>
+                                <td>8</td>
+                                <td><span class="badge badge-success">Open</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // ==================== LOAD SETTINGS ====================
+        function loadSettings(content) {
+            content.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-user"></i> Profile Settings</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <p style="color: var(--gray); font-size: 13px;">Name: <strong>${hierarchy[currentRole].name}</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Email: <strong>${hierarchy[currentRole].email}</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Level: <strong>${currentLevel}</strong></p>
+                            <p style="color: var(--gray); font-size: 13px;">Description: <strong>${hierarchy[currentRole].description}</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-lock"></i> Your Permissions</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                        ${Object.entries(currentPermissions).map(([perm, allowed]) => `
+                            <div style="padding: 10px; background: ${allowed ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border-radius: 8px; border-left: 3px solid ${allowed ? 'var(--success)' : 'var(--danger)'};">
+                                <div style="font-size: 12px; color: var(--dark); font-weight: 600;">
+                                    ${allowed ? '✅' : '❌'} ${perm}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function getRestrictedAccessMessage(title, permission) {
+            return `
+                <div class="restricted-access">
+                    <i class="fas fa-lock"></i>
+                    <h3>🔒 Access Restricted</h3>
+                    <p>${title} is not available for your role (Level ${currentLevel})</p>
+                    <p style="margin-top: 10px; font-size: 12px;">Required permission: <code>${permission}</code></p>
+                    <p style="margin-top: 10px; font-size: 11px; opacity: 0.7;">Contact Madhesh (Owner) to request access</p>
+                </div>
+            `;
+        }
+
+        function getPermissionsInfo() {
+            const activePerms = Object.entries(currentPermissions)
+                .filter(([_, allowed]) => allowed)
+                .map(([perm, _]) => perm);
+
+            const restrictedPerms = Object.entries(currentPermissions)
+                .filter(([_, allowed]) => !allowed)
+                .map(([perm, _]) => perm);
+
+            let html = '<div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-shield"></i> Your Access Level</div></div>';
+            
+            html += '<div style="margin-bottom: 20px;">';
+            html += `<div style="font-weight: 700; margin-bottom: 10px;">✅ Allowed Access (${activePerms.length})</div>`;
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">';
+            activePerms.forEach(perm => {
+                html += `<div style="padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; font-size: 12px; color: var(--success);">${perm}</div>`;
+            });
+            html += '</div></div>';
+
+            html += '<div>';
+            html += `<div style="font-weight: 700; margin-bottom: 10px;">❌ Restricted Access (${restrictedPerms.length})</div>`;
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">';
+            restrictedPerms.slice(0, 6).forEach(perm => {
+                html += `<div style="padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-size: 12px; color: var(--danger);">${perm}</div>`;
+            });
+            if (restrictedPerms.length > 6) {
+                html += `<div style="padding: 8px; background: rgba(107, 114, 128, 0.1); border-radius: 6px; font-size: 12px; color: var(--gray);">+${restrictedPerms.length - 6} more restricted</div>`;
+            }
+            html += '</div></div>';
+
+            html += '</div>';
+            return html;
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                danger: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+
+            alertDiv.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            const container = document.getElementById('alertContainer');
+            if (container) {
+                container.innerHTML = '';
+                container.appendChild(alertDiv);
+            }
+
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const scrollTopBtn = document.getElementById('scrollTop');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+
+        // ==================== INITIALIZATION ====================
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                currentRole = user.role;
+                currentUser = hierarchy[user.role].email;
+                currentLevel = user.level;
+                currentPermissions = hierarchy[user.role].permissions;
+
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userRole').textContent = `Level ${user.level} - ${hierarchy[user.role].description}`;
+
+                updateNavigation();
+                loadDashboard();
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: iaos-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: iaos
+      MYSQL_USER: iaos
+      MYSQL_PASSWORD: iaos_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - iaos_db:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: iaos-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://iaos:iaos_password@db:3306/iaos
+      SECRET_KEY: change-me-in-production
+      CORS_ORIGINS: http://localhost:5173
+      SUPERADMIN_EMAIL: admin@capcorp.com
+      SUPERADMIN_PASSWORD: ChangeMe123!
+    ports:
+      - "8000:8000"
+
+volumes:
+  iaos_db:

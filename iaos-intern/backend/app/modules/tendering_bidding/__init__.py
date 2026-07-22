@@ -1,0 +1,1 @@
+"""Tendering & Bidding module."""

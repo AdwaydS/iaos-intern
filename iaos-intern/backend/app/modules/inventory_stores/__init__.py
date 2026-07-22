@@ -1,0 +1,1 @@
+"""Inventory & Stores module."""

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>VK Group Corporate ERP</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--main:#2563eb;--main-dark:#1e40af;--main-light:#dbeafe;--bg:#f8fafc;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--green:#10b981;--red:#ef4444;--orange:#f97316;--purple:#7c3aed}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.hidden{display:none!important}
+.login{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,var(--main),var(--main-dark));display:flex;align-items:center;justify-content:center;z-index:100}
+.login-box{background:var(--card);padding:40px;border-radius:20px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp.6s}
+.login-box h1{color:var(--main);font-size:32px;margin-bottom:8px;font-weight:900}
+.login-box p{color:var(--text-light);font-size:13px;margin-bottom:20px}
+.login-box select,.login-box input{width:100%;padding:13px;margin:8px 0;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text)}
+.login-box input:focus,.login-box select:focus{outline:none;border-color:var(--main)}
+.btn{width:100%;padding:13px;background:var(--main);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:8px 0;font-size:15px}
+.btn:hover{background:var(--main-dark)}
+.header{background:var(--card);border-bottom:1px solid var(--border);padding:15px 0;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(37,99,235,0.1)}
+.header-inner{max-width:1600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 20px;flex-wrap:wrap;gap:12px}
+.logo{font-size:26px;font-weight:900;color:var(--main)}
+.role-tag{display:inline-block;background:var(--main);color:white;font-size:11px;padding:4px 10px;border-radius:6px;margin-left:8px;font-weight:700;animation:pulse 2s infinite}
+.user-bar{display:flex;align-items:center;gap:14px;font-size:13px}
+.btn-logout{background:none;border:2px solid var(--border);color:var(--text);padding:7px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+.nav-tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.nav-tab{padding:10px 18px;background:var(--card);border:2px solid var(--border);border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all.3s}
+.nav-tab:hover{border-color:var(--main);color:var(--main)}
+.nav-tab.active{background:var(--main);color:white;border-color:var(--main)}
+.container{max-width:1600px;margin:25px auto;padding:0 20px;animation:fadeIn.5s}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:25px}
+.stat-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px;text-align:center;transition:all.3s}
+.stat-card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(37,99,235,0.15);border-color:var(--main)}
+.stat-icon{font-size:36px;margin-bottom:10px}
+.stat-val{font-size:32px;font-weight:900;color:var(--main);margin-bottom:5px}
+.stat-label{font-size:13px;color:var(--text-light);font-weight:600}
+.stat-sub{font-size:11px;color:var(--green);margin-top:5px}
+.dashboard-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:25px;margin-bottom:20px;animation:slideUp.5s}
+.dashboard-card h2{font-size:22px;font-weight:800;color:var(--main);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.table{width:100%;border-collapse:collapse;margin-top:15px}
+.table th{background:var(--main-light);color:var(--main-dark);padding:12px;text-align:left;font-size:13px;font-weight:700}
+.table td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+.table tr:hover{background:var(--bg)}
+.btn-small{padding:7px 14px;background:var(--main);color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;margin:0 3px}
+.btn-small:hover{background:var(--main-dark)}
+.btn-green{background:var(--green)}
+.btn-green:hover{background:#059669}
+.form-group{margin-bottom:15px}
+.form-group label{font-size:13px;font-weight:700;color:var(--text);display:block;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--main)}
+.badge{display:inline-block;padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;margin:0 3px}
+.badge-green{background:#d1fae5;color:#059669}
+.badge-blue{background:var(--main-light);color:var(--main-dark)}
+.badge-orange{background:#ffedd5;color:#ea580c}
+.badge-purple{background:#ede9fe;color:#6d28d9}
+.badge-red{background:#fee2e2;color:#dc2626}
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin:18px 0}
+.dept-card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;transition:all.3s}
+.dept-card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(37,99,235,0.15);border-color:var(--main)}
+.dept-card img{width:100%;height:160px;object-fit:cover}
+.dept-info{padding:16px}
+.dept-name{font-size:16px;font-weight:800;color:var(--main);margin-bottom:8px}
+.dept-stats{display:flex;gap:15px;font-size:12px;color:var(--text-light);margin-top:10px}
+.work-card{background:var(--bg);border:2px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.work-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.work-meta{display:flex;gap:15px;font-size:12px;color:var(--text-light);margin-bottom:10px;flex-wrap:wrap}
+.work-desc{font-size:13px;color:var(--text-light);line-height:1.6;background:var(--card);padding:12px;border-radius:8px;border-left:3px solid var(--main)}
+.hierarchy-list{background:var(--bg);padding:15px;border-radius:10px;margin:15px 0}
+.hierarchy-list div{padding:8px 0;border-bottom:1px dashed var(--border);font-size:13px}
+.hierarchy-list div:last-child{border-bottom:none}
+.hierarchy-list b{color:var(--main)}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+<div class="login-box">
+<h1>VK Group Corporate ERP</h1>
+<p>13-Level Hierarchy Authentication System</p>
+<select id="role">
+<option value="">Select Your Designation</option>
+<option value="owner">1. Owner / Founder</option>
+<option value="chairman">2. Chairman</option>
+<option value="chairman_assistant">2A. Chairman Secretary/Assistant</option>
+<option value="ceo">3. Chief Executive Officer (CEO)</option>
+<option value="ceo_assistant">3A. CEO Secretary/Assistant</option>
+<option value="cto">4. Chief Technology Officer (CTO)</option>
+<option value="cfo">4. Chief Financial Officer (CFO)</option>
+<option value="coo">4. Chief Operating Officer (COO)</option>
+<option value="vp">5. Vice President (VP)</option>
+<option value="director">6. Director</option>
+<option value="senior_manager">7. Senior Manager</option>
+<option value="manager">8. Manager</option>
+<option value="team_leader">9. Team Leader</option>
+<option value="senior_employee">10. Senior Employee / Engineer</option>
+<option value="employee">11. Employee / Engineer / Executive</option>
+<option value="junior_employee">12. Junior Employee / Associate</option>
+<option value="intern">13. Intern / Trainee</option>
+</select>
+<input type="email" id="email" placeholder="Company Email ID" value="test@vkgroup.com">
+<input type="password" id="pass" placeholder="Password" value="123456">
+<button class="btn" onclick="signin()">Login to Dashboard</button>
+</div>
+</div>
+
+<div id="app" class="hidden">
+<div class="header">
+<div class="header-inner">
+<div class="logo">VK Group ERP <span class="role-tag" id="roleTag"></span></div>
+<div class="user-bar">
+<span id="userName"></span>
+<button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+</div>
+</div>
+
+<div class="container" id="dashboard">
+<div class="nav-tabs" id="navTabs"></div>
+<div id="tabContent"></div>
+</div>
+</div>
+
+<script>
+var currentRole='',currentUser='',currentLevel=0;
+
+var hierarchy={
+owner:{level:1,name:'Owner / Founder',canViewFinance:true,canAssignWork:true,canRecruit:true,canViewAll:true},
+chairman:{level:2,name:'Chairman',canViewFinance:true,canAssignWork:true,canRecruit:true,canViewAll:true},
+chairman_assistant:{level:2.1,name:'Chairman Assistant',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false},
+ceo:{level:3,name:'CEO',canViewFinance:true,canAssignWork:true,canRecruit:true,canViewAll:true},
+ceo_assistant:{level:3.1,name:'CEO Assistant',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false},
+cto:{level:4,name:'Chief Technology Officer',canViewFinance:false,canAssignWork:true,canRecruit:true,canViewAll:false},
+cfo:{level:4,name:'Chief Financial Officer',canViewFinance:true,canAssignWork:true,canRecruit:true,canViewAll:false},
+coo:{level:4,name:'Chief Operating Officer',canViewFinance:false,canAssignWork:true,canRecruit:true,canViewAll:false},
+vp:{level:5,name:'Vice President',canViewFinance:false,canAssignWork:true,canRecruit:true,canViewAll:false},
+director:{level:6,name:'Director',canViewFinance:false,canAssignWork:true,canRecruit:true,canViewAll:false},
+senior_manager:{level:7,name:'Senior Manager',canViewFinance:false,canAssignWork:true,canRecruit:false,canViewAll:false},
+manager:{level:8,name:'Manager',canViewFinance:false,canAssignWork:true,canRecruit:false,canViewAll:false},
+team_leader:{level:9,name:'Team Leader',canViewFinance:false,canAssignWork:true,canRecruit:false,canViewAll:false},
+senior_employee:{level:10,name:'Senior Employee',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false},
+employee:{level:11,name:'Employee',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false},
+junior_employee:{level:12,name:'Junior Employee',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false},
+intern:{level:13,name:'Intern / Trainee',canViewFinance:false,canAssignWork:false,canRecruit:false,canViewAll:false}
+};
+
+function signin(){
+var role=document.getElementById('role').value;
+var email=document.getElementById('email').value;
+var pass=document.getElementById('pass').value;
+if(role==''||email==''||pass==''){alert('Please select Role and fill Email + Password');return}
+currentRole=role;
+currentUser=email;
+currentLevel=hierarchy[role].level;
+document.getElementById('login').classList.add('hidden');
+document.getElementById('app').classList.remove('hidden');
+document.getElementById('userName').innerText=email;
+document.getElementById('roleTag').innerText=hierarchy[role].name;
+buildDashboard();
+}
+
+function logout(){
+currentRole='';currentUser='';currentLevel=0;
+document.getElementById('login').classList.remove('hidden');
+document.getElementById('app').classList.add('hidden');
+document.getElementById('role').value='';
+document.getElementById('email').value='test@vkgroup.com';
+document.getElementById('pass').value='123456';
+}
+
+function buildDashboard(){
+var tabs=document.getElementById('navTabs');
+var roleData=hierarchy[currentRole];
+tabs.innerHTML='<div class="nav-tab active" onclick="showTab(\'overview\')">Overview</div>';
+if(roleData.canViewAll || currentLevel<=8)tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'employees\')">Employee List</div>';
+tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'hierarchy\')">Full Hierarchy</div>';
+if(roleData.canViewAll || currentLevel<=6)tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'departments\')">Departments</div>';
+if(roleData.canAssignWork)tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'workdesc\')">Work Assignment</div>';
+if(roleData.canViewFinance)tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'finance\')">Finance</div>';
+if(roleData.canRecruit)tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'recruitment\')">Recruitment</div>';
+tabs.innerHTML+='<div class="nav-tab" onclick="showTab(\'mytasks\')">My Tasks</div>';
+showTab('overview');
+}
+
+function showTab(type){
+document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
+if(event && event.target)event.target.classList.add('active');
+var content=document.getElementById('tabContent');
+var html='';
+if(type=='overview'){
+html='<h1 style="font-size:28px;font-weight:900;margin-bottom:20px">Welcome, '+hierarchy[currentRole].name+'</h1>';
+html+='<div class="stats-grid">';
+html+='<div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val">2156</div><div class="stat-label">Total Employees</div><div class="stat-sub">Across 6 departments</div></div>';
+html+='<div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-val">6</div><div class="stat-label">Departments</div><div class="stat-sub">Active divisions</div></div>';
+html+='<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-val">'+currentLevel+'</div><div class="stat-label">Your Level</div><div class="stat-sub">Out of 13 levels</div></div>';
+html+='<div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val">127</div><div class="stat-label">Active Projects</div><div class="stat-sub">Company-wide</div></div>';
+html+='</div>';
+html+='<div class="dashboard-card"><h2>🏢 VK Group Corporate Structure</h2>';
+html+='<img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=300&fit=crop" style="width:100%;border-radius:12px;margin-bottom:15px">';
+html+='<p style="font-size:14px;color:var(--text-light);line-height:1.7">VK Group operates with a 13-level hierarchical structure. Your current designation: <b style="color:var(--main)">'+hierarchy[currentRole].name+'</b> (Level '+currentLevel+'). You have access based on your role permissions.</p></div>';
+}
+if(type=='employees'){
+html='<div class="dashboard-card"><h2>👥 Employee List - Role Based Access</h2>';
+html+='<table class="table"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Level</th><th>Status</th></tr></thead><tbody>';
+html+='<tr><td>EMP001</td><td>Suresh VK</td><td>owner@vkgroup.com</td><td>Board</td><td>Owner/Founder</td><td>1</td><td><span class="badge badge-purple">Active</span></td></tr>';
+html+='<tr><td>EMP002</td><td>Rajesh Kumar</td><td>ceo@vkgroup.com</td><td>Executive</td><td>CEO</td><td>3</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP003</td><td>Priya Sharma</td><td>cto@vkgroup.com</td><td>Tech</td><td>CTO</td><td>4</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP004</td><td>Amit Singh</td><td>cfo@vkgroup.com</td><td>Finance</td><td>CFO</td><td>4</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP005</td><td>Sneha Patel</td><td>vp@vkgroup.com</td><td>Operations</td><td>VP</td><td>5</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP006</td><td>Vikram Singh</td><td>dir@vkgroup.com</td><td>Tech</td><td>Director</td><td>6</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP007</td><td>Anjali Gupta</td><td>sm@vkgroup.com</td><td>HR</td><td>Sr Manager</td><td>7</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='<tr><td>EMP008</td><td>Rahul Verma</td><td>mgr@vkgroup.com</td><td>Sales</td><td>Manager</td><td>8</td><td><span class="badge badge-green">Active</span></td></tr>';
+html+='</tbody></table></div>';
+}
+if(type=='hierarchy'){
+html='<div class="dashboard-card"><h2>📊 Complete 13-Level Corporate Hierarchy</h2>';
+html+='<div class="hierarchy-list">';
+html+='<div><b>Level 1:</b> Owner / Founder - Ultimate authority, owns the company</div>';
+html+='<div><b>Level 2:</b> Chairman - Leads board, strategic decisions</div>';
+html+='<div><b>Level 2A:</b> Chairman Secretary/Assistant - Supports Chairman</div>';
+html+='<div><b>Level 3:</b> CEO - Runs entire company, reports to Chairman</div>';
+html+='<div><b>Level 3A:</b> CEO Secretary/Assistant - Supports CEO</div>';
+html+='<div><b>Level 4:</b> CXOs - CTO, CFO, COO - Department heads</div>';
+html+='<div><b>Level 5:</b> Vice President (VP) - Strategic leadership</div>';
+html+='<div><b>Level 6:</b> Director - Department leadership</div>';
+html+='<div><b>Level 7:</b> Senior Manager - Senior management</div>';
+html+='<div><b>Level 8:</b> Manager - Team management</div>';
+html+='<div><b>Level 9:</b> Team Leader - Team supervision</div>';
+html+='<div><b>Level 10:</b> Senior Employee/Engineer - Experienced staff</div>';
+html+='<div><b>Level 11:</b> Employee/Engineer/Executive - Regular staff</div>';
+html+='<div><b>Level 12:</b> Junior Employee/Associate - Entry level</div>';
+html+='<div><b>Level 13:</b> Intern/Trainee - Training period</div>';
+html+='</div></div>';
+}
+if(type=='departments'){
+html='<div class="dashboard-card"><h2>🏢 All Departments - 6 Divisions</h2><div class="dept-grid">';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Group HQ</div><p style="font-size:12px;color:var(--text-light)">Corporate headquarters, Chennai</p><div class="dept-stats"><div>👥 200 Employees</div><div>💰 ₹80L Revenue</div></div></div></div>';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Tech</div><p style="font-size:12px;color:var(--text-light)">Software development, Chennai</p><div class="dept-stats"><div>👥 500 Employees</div><div>💰 ₹1.2Cr Revenue</div></div></div>';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Retail</div><p style="font-size:12px;color:var(--text-light)">Retail stores, Mumbai</p><div class="dept-stats"><div>👥 400 Employees</div><div>💰 ₹95L Revenue</div></div></div>';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Digital</div><p style="font-size:12px;color:var(--text-light)">Digital marketing, Bangalore</p><div class="dept-stats"><div>👥 300 Employees</div><div>💰 ₹65L Revenue</div></div></div></div>';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Services</div><p style="font-size:12px;color:var(--text-light)">BPO services, Remote</p><div class="dept-stats"><div>👥 600 Employees</div><div>💰 ₹45L Revenue</div></div></div></div>';
+html+='<div class="dept-card"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=240&fit=crop"><div class="dept-info"><div class="dept-name">VK Corp</div><p style="font-size:12px;color:var(--text-light)">Corporate solutions, Delhi</p><div class="dept-stats"><div>👥 156 Employees</div><div>💰 ₹35L Revenue</div></div></div></div>';
+html+='</div></div>';
+}
+if(type=='workdesc'){
+if(!hierarchy[currentRole].canAssignWork){
+html='<div class="dashboard-card"><h2>⚠️ Access Restricted</h2><p>Your role does not have permission to assign work. Only Level 1-9 can assign tasks.</p><p>Your current role: <b>'+hierarchy[currentRole].name+'</b></p></div>';
+}else{
+html='<div class="dashboard-card"><h2>📋 Work Description Module - Assign Tasks</h2>';
+html+='<div class="form-group"><label>Assign To (Select Junior Role Only)</label><select id="workAssignTo"><option value="">Select Person</option>';
+if(currentLevel<13)html+='<option>Intern - Ravi (Level 13)</option>';
+if(currentLevel<12)html+='<option>Junior Employee - Kiran (Level 12)</option>';
+if(currentLevel<11)html+='<option>Employee - Pooja (Level 11)</option>';
+if(currentLevel<10)html+='<option>Sr Employee - Raj (Level 10)</option>';
+if(currentLevel<9)html+='<option>Team Leader - Anjali (Level 9)</option>';
+html+='</select></div>';
+html+='<div class="form-group"><label>Work Title</label><input type="text" id="workTitle" placeholder="e.g. Complete Q1 Report"></div>';
+html+='<div class="form-group"><label>Detailed Work Description</label><textarea id="workDescription" rows="4" placeholder="Enter detailed work description, duties, responsibilities, deliverables"></textarea></div>';
+html+='<div class="form-group"><label>Priority Level</label><select id="workPriority"><option value="">Select Priority</option><option>High - Urgent</option><option>Medium - Normal</option><option>Low - Can Wait</option></select></div>';
+html+='<div class="form-group"><label>Deadline Date</label><input type="date" id="workDeadline"></div>';
+html+='<button class="btn" onclick="assignWorkDesc()">Assign Work</button></div>';
+html+='<div class="dashboard-card"><h2>📊 Active Work Assignments</h2><div id="workListContainer">';
+html+='<div class="work-card"><div class="work-title">Q1 2026 Financial Audit</div><div class="work-meta"><span>Assigned To: CFO</span><span>Priority: <span class="badge badge-red">High</span></span><span>Deadline: 30 Jan 2026</span><span>Status: <span class="badge badge-orange">In Progress</span></span></div><div class="work-desc"><b>Description:</b> Complete comprehensive financial audit for Q1 2026. Review all 6 department revenues, expenses, profit margins. Prepare board presentation.</div></div>';
+html+='</div></div>';
+}}
+if(type=='finance'){
+if(!hierarchy[currentRole].canViewFinance){
+html='<div class="dashboard-card"><h2>⚠️ Access Restricted</h2><p>Finance data is only accessible to: Owner, Chairman, CEO, and CFO.</p><p>Your current role: <b>'+hierarchy[currentRole].name+'</b></p></div>';
+}else{
+html='<div class="dashboard-card"><h2>💰 Financial Overview - Restricted Access</h2>';
+html+='<table class="table"><thead><tr><th>Company</th><th>Revenue</th><th>Expense</th><th>Profit</th><th>Margin</th><th>Growth</th></tr></thead><tbody>';
+html+='<tr><td>VK Group HQ</td><td>₹80L</td><td>₹45L</td><td>₹35L</td><td>43.8%</td><td><span class="badge badge-green">↑ 12%</span></td></tr>';
+html+='<tr><td>VK Tech</td><td>₹1.2Cr</td><td>₹55L</td><td>₹65L</td><td>54.2%</td><td><span class="badge badge-green">↑ 45%</span></td></tr>';
+html+='<tr><td>VK Retail</td><td>₹95L</td><td>₹50L</td><td>₹45L</td><td>47.4%</td><td><span class="badge badge-green">↑ 38%</span></td></tr>';
+html+='<tr><td>VK Digital</td><td>₹65L</td><td>₹30L</td><td>₹35L</td><td>53.8%</td><td><span class="badge badge-green">↑ 52%</span></td></tr>';
+html+='<tr><td>VK Services</td><td>₹45L</td><td>₹25L</td><td>₹20L</td><td>44.4%</td><td><span class="badge badge-green">↑ 28%</span></td></tr>';
+html+='<tr><td>VK Corp</td><td>₹35L</td><td>₹15L</td><td>₹20L</td><td>57.1%</td><td><span class="badge badge-green">↑ 35%</span></td></tr>';
+html+='<tr style="background:var(--main-light);font-weight:700"><td>TOTAL</td><td>₹4.2Cr</td><td>₹1.8Cr</td><td>₹2.4Cr</td><td>57.1%</td><td><span class="badge badge-green">↑ 40%</span></td></tr>';
+html+='</tbody></table></div>';
+}}
+if(type=='recruitment'){
+if(!hierarchy[currentRole].canRecruit){
+html='<div class="dashboard-card"><h2>⚠️ Access Restricted</h2><p>Recruitment module is only accessible to: Owner, Chairman, CEO, CXOs, VP, Director.</p></div>';
+}else{
+html='<div class="dashboard-card"><h2>📋 New Recruitment - Post Job</h2>';
+html+='<div class="form-group"><label>Department</label><select id="recruitDept"><option value="">Select Department</option><option>VK Group HQ</option><option>VK Tech</option><option>VK Retail</option><option>VK Digital</option><option>VK Services</option><option>VK Corp</option></select></div>';
+html+='<div class="form-group"><label>Job Title</label><input type="text" id="recruitTitle" placeholder="e.g. Senior Software Developer"></div>';
+html+='<div class="form-group"><label>Designation Level</label><select id="recruitLevel"><option value="">Select Level</option><option>Level 7-9: Manager/Team Leader</option><option>Level 10-11: Senior/Employee</option><option>Level 12: Junior Employee</option><option>Level 13: Intern</option></select></div>';
+html+='<div class="form-group"><label>Number of Positions</label><input type="number" id="recruitCount" placeholder="e.g. 5"></div>';
+html+='<div class="form-group"><label>Salary Range</label><input type="text" id="recruitSalary" placeholder="e.g. ₹50,000 - ₹70,000"></div>';
+html+='<div class="form-group"><label>Job Description & Role</label><textarea id="recruitDesc" rows="3" placeholder="Enter detailed job role and duties"></textarea></div>';
+html+='<button class="btn" onclick="createRecruitment()">Post Recruitment</button></div>';
+}}
+if(type=='mytasks'){
+html='<div class="dashboard-card"><h2>📝 My Tasks & Responsibilities</h2>';
+html+='<div class="work-card"><div class="work-title">Weekly Status Report</div><div class="work-meta"><span>Assigned By: Manager</span><span>Priority: <span class="badge badge-orange">Medium</span></span><span>Deadline: Every Friday</span><span>Status: <span class="badge badge-blue">Pending</span></span></div><div class="work-desc"><b>Description:</b> Submit weekly progress report on assigned projects. Include completed tasks, blockers, and next week plan.</div></div>';
+html+='</div>';
+}
+content.innerHTML=html;
+}
+
+function assignWorkDesc(){
+var to=document.getElementById('workAssignTo').value;
+var title=document.getElementById('workTitle').value;
+var desc=document.getElementById('workDescription').value;
+var priority=document.getElementById('workPriority').value;
+var date=document.getElementById('workDeadline').value;
+if(to==''||title==''||desc==''||priority==''||date==''){alert('Fill all fields');return}
+var priorityClass=priority.includes('High')?'badge-red':priority.includes('Medium')?'badge-orange':'badge-green';
+var workHTML='<div class="work-card"><div class="work-title">'+title+'</div><div class="work-meta"><span>Assigned To: '+to+'</span><span>Priority: <span class="badge '+priorityClass+'">'+priority.split(' ')[0]+'</span></span><span>Deadline: '+date+'</span><span>Status: <span class="badge badge-blue">Assigned</span></span></div><div class="work-desc"><b>Description:</b> '+desc+'</div></div>';
+var container=document.getElementById('workListContainer');
+container.innerHTML=workHTML+container.innerHTML;
+alert('Work assigned successfully to '+to);
+document.getElementById('workAssignTo').value='';
+document.getElementById('workTitle').value='';
+document.getElementById('workDescription').value='';
+document.getElementById('workPriority').value='';
+document.getElementById('workDeadline').value='';
+}
+
+function createRecruitment(){
+var dept=document.getElementById('recruitDept').value;
+var title=document.getElementById('recruitTitle').value;
+var level=document.getElementById('recruitLevel').value;
+var count=document.getElementById('recruitCount').value;
+var salary=document.getElementById('recruitSalary').value;
+var desc=document.getElementById('recruitDesc').value;
+if(
+dept==''||title==''||level==''||count==''||salary==''||desc==''){alert('Fill all fields');return}
+alert('Recruitment posted successfully for '+dept+' - '+title);
+document.getElementById('recruitDept').value='';
+document.getElementById('recruitTitle').value='';   
+document.getElementById('recruitLevel').value='';
+document.getElementById('recruitCount').value='';
+document.getElementById('recruitSalary').value='';
+document.getElementById('recruitDesc').value='';
+}
+</script>
+</body>
+</html>

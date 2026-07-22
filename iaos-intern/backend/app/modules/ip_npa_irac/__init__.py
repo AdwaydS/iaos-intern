@@ -1,0 +1,1 @@
+"""NPA/IRAC module."""
