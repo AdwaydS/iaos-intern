@@ -42,6 +42,11 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(modules.router)
 
+# Custom compliance router for v1 spec
+from app.modules.labour_law_pf_esi.router import custom_router
+app.include_router(custom_router, prefix="/api/v1/labour-compliance", tags=["labour-compliance-v1"])
+
+
 
 @app.get("/api/health", tags=["system"])
 def health():

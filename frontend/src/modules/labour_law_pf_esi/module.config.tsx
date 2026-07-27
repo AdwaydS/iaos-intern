@@ -3,7 +3,7 @@ import LabourLawPfEsiPage from "./LabourLawPfEsiPage";
 
 const config: ModuleConfig = {
   slug: "labour_law_pf_esi",
-  title: "Labour Law & PF/ESI",
+  title: "Labour Law & PF/ESI Compliance",
   description: "Labour Law & PF/ESI — audit module.",
   icon: "scale",
   group: "Tax, Legal & Compliance",
