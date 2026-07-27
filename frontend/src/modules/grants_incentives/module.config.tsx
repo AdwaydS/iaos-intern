@@ -5,7 +5,7 @@ const config: ModuleConfig = {
   slug: "grants_incentives",
   title: "Grants, Subsidies & Incentives",
   description: "Tracks government grants, subsidies and incentive schemes for eligibility, claims, compliance and clawback risk.",
-  icon: "💰",
+  icon: "wallet",
   component: GrantsIncentivesPage,
 };
 
