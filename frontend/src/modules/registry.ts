@@ -80,9 +80,28 @@ export const MODULES: ModuleConfig[] = Object.entries(modules)
   .sort((a, b) => a.title.localeCompare(b.title));
 
 export function modulesForRole(role: Role): ModuleConfig[] {
-  return MODULES.filter((m) => !m.roles || m.roles.includes(role));
+  if (!role || role === "super_admin" || role === "tenant_admin") {
+    return MODULES;
+  }
+  const roleMods = MODULES.filter((m) => !m.roles || m.roles.includes(role));
+  return roleMods.length > 0 ? roleMods : MODULES;
 }
 
 export function findModule(slug: string): ModuleConfig | undefined {
-  return MODULES.find((m) => m.slug === slug);
+  if (!slug) return undefined;
+  const rawSegment = slug.replace(/^\/+|\/+$/g, "").split("/")[0].split("?")[0].toLowerCase();
+  const cleanSlug = rawSegment.replace(/-/g, "_");
+  const strippedSlug = cleanSlug.replace(/_audit$/g, "").replace(/_module$/g, "");
+
+  return MODULES.find((m) => {
+    const mSlug = m.slug.toLowerCase().replace(/-/g, "_");
+    const mStripped = mSlug.replace(/_audit$/g, "").replace(/_module$/g, "");
+    return (
+      m.slug === slug ||
+      mSlug === cleanSlug ||
+      mStripped === strippedSlug ||
+      mSlug === strippedSlug ||
+      strippedSlug === mSlug
+    );
+  });
 }

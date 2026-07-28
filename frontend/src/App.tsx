@@ -37,7 +37,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="m/:slug/*" element={<ModuleHost />} />
             <Route path="m/:slug" element={<ModuleHost />} />
+            <Route path=":slug/*" element={<ModuleHost />} />
+            <Route path=":slug" element={<ModuleHost />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

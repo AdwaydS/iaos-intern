@@ -10,9 +10,16 @@ export default function ModuleHost() {
 
   if (!mod) {
     return (
-      <div className="page-head">
+      <div className="page-head" style={{ padding: "30px", textAlign: "center" }}>
         <h1>Module not found</h1>
-        <p>No module is registered for “{slug}”.</p>
+        <p style={{ marginTop: "8px", color: "var(--slate)" }}>
+          No module is registered for “{slug}”.
+        </p>
+        <div style={{ marginTop: "20px" }}>
+          <a href="/app" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "inline-block" }}>
+            Return to Main Dashboard
+          </a>
+        </div>
       </div>
     );
   }

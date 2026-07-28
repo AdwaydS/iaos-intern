@@ -6,13 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-import app.models  # noqa: F401  — registers platform tables on Base.metadata
+import app.models  # noqa: F401 — registers platform tables on Base.metadata
 from app.api import admin, auth, modules
 from app.shared.audit_framework.router import router as framework_router
 from app.bootstrap import create_all_tables, ensure_super_admin
 from app.core.config import settings
 from app.module_loader import load_modules
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

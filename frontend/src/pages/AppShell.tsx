@@ -20,14 +20,15 @@ export default function AppShell() {
 
   const isSuper = user.role === "super_admin";
   const isAdmin = isSuper || user.role === "tenant_admin";
-  const modules = isSuper ? [] : modulesForRole(user.role);
+  const modules = modulesForRole(user.role);
   const groups = useMemo(() => groupModules(modules), [modules]);
 
   // Which module is open right now → expand its group by default.
-  const activeSlug = location.pathname.startsWith("/app/m/")
-    ? location.pathname.split("/app/m/")[1]
+  const rawPathRemainder = location.pathname.replace(/^\/app\/?/, "").replace(/^m\/?/, "");
+  const activeSlug = rawPathRemainder ? rawPathRemainder.split("/")[0] : null;
+  const activeGroup = activeSlug
+    ? (modules.find((m) => m.slug === activeSlug || m.slug.replace(/-/g, "_") === activeSlug.replace(/-/g, "_"))?.group ?? null)
     : null;
-  const activeGroup = modules.find((m) => m.slug === activeSlug)?.group ?? null;
 
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const isOpen = (name: string) =>
