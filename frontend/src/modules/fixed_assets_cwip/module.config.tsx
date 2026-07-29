@@ -4,9 +4,9 @@ import FixedAssetsCwipPage from "./FixedAssetsCwipPage";
 const config: ModuleConfig = {
   slug: "fixed_assets_cwip",
   title: "Fixed Assets & CWIP",
-  description: "Fixed Assets & CWIP — audit module.",
+  description: "Verifies asset existence, recomputes depreciation, and controls capex-to-capitalisation including CWIP ageing and disposal governance.",
   icon: "building",
-  group: "Treasury, Assets & Capital",
+  group: "Finance Cycles",
   component: FixedAssetsCwipPage,
 };
 
