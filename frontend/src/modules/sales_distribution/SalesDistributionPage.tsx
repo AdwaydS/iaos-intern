@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { get, post } from "../../lib/api";
+import { del, get, post } from "../../lib/api";
 
 const SLUG = "sales_distribution";
 
@@ -76,7 +76,7 @@ const CATEGORIES: CategoryGroup[] = [
       { key: "test-analytics-rule-library", name: "Test & Analytics Rule Library" },
       { key: "data-source-connector-setup", name: "Data Source & Connector Setup" },
       { key: "sampling-population-builder", name: "Sampling & Population Builder" },
-      { key: "exception-red-flag-queue", name: "Exception & Red-Flag Queue", badge: "14 Flags" },
+      { key: "exception-red-flag-queue", name: "Exception & Red-Flag Queue", badge: "Red Flags" },
       { key: "working-papers-evidence", name: "Working Papers & Evidence" },
       { key: "observation-finding-log", name: "Observation & Finding Log" },
       { key: "remediation-action-tracker", name: "Remediation / Action Tracker" },
@@ -89,30 +89,89 @@ export default function SalesDistributionPage() {
   const [kpis, setKpis] = useState<Kpis | null>(null);
   const [pageData, setPageData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [runningAnalytics, setRunningAnalytics] = useState<boolean>(false);
   const [searchFilter, setSearchFilter] = useState<string>("");
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [statusNotification, setStatusNotification] = useState<string>("");
 
-  // New item form state
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEscalateModal, setShowEscalateModal] = useState<boolean>(false);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+
+  // Escalate form
+  const [escalateTitle, setEscalateTitle] = useState("");
+  const [escalateCategory, setEscalateCategory] = useState("Scheme Leakage");
+  const [escalateSeverity, setEscalateSeverity] = useState("High");
+  const [escalateImpact, setEscalateImpact] = useState<number>(150000);
+  const [escalateRec, setEscalateRec] = useState("");
+  const [escalateOwner, setEscalateOwner] = useState("Head of Sales Ops");
+
+  // New item title/notes
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemNotes, setNewItemNotes] = useState("");
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const kpiRes = await get<Kpis>(`/api/modules/${SLUG}/kpis`);
-        setKpis(kpiRes);
+  async function loadData() {
+    setLoading(true);
+    try {
+      const kpiRes = await get<Kpis>(`/api/modules/${SLUG}/kpis`);
+      setKpis(kpiRes);
 
-        const subRes = await get<any>(`/api/modules/${SLUG}/subpages/${activeSubPage}`);
-        setPageData(subRes);
-      } catch (err) {
-        console.error("Failed to fetch Sales & Distribution data:", err);
-      } finally {
-        setLoading(false);
-      }
+      const subRes = await get<any>(`/api/modules/${SLUG}/subpages/${activeSubPage}`);
+      setPageData(subRes);
+    } catch (err) {
+      console.error("Failed to fetch Sales & Distribution data:", err);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadData();
   }, [activeSubPage]);
+
+  async function handleRunAnalytics() {
+    setRunningAnalytics(true);
+    try {
+      const res = await post<any>(`/api/modules/${SLUG}/execute-analytics`, { threshold_amount: 50000 });
+      setStatusNotification(res.message || "Audit analytics executed successfully!");
+      await loadData();
+      setTimeout(() => setStatusNotification(""), 5000);
+    } catch (err) {
+      console.error("Analytics execution failed:", err);
+    } finally {
+      setRunningAnalytics(false);
+    }
+  }
+
+  async function handleEscalateSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const res = await post<any>(`/api/modules/${SLUG}/escalate-finding`, {
+        title: escalateTitle,
+        risk_category: escalateCategory,
+        severity: escalateSeverity,
+        financial_impact: escalateImpact,
+        recommendation: escalateRec,
+        action_owner: escalateOwner,
+      });
+      setStatusNotification(res.message);
+      setShowEscalateModal(false);
+      await loadData();
+      setTimeout(() => setStatusNotification(""), 5000);
+    } catch (err) {
+      console.error("Escalation failed:", err);
+    }
+  }
+
+  async function handleDeleteRecord(id: number) {
+    if (!window.confirm("Are you sure you want to delete this audit record?")) return;
+    try {
+      await del(`/api/modules/${SLUG}/subpages/${activeSubPage}/item/${id}`);
+      await loadData();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  }
 
   async function handleAddItem(e: React.FormEvent) {
     e.preventDefault();
@@ -122,9 +181,7 @@ export default function SalesDistributionPage() {
       setNewItemTitle("");
       setNewItemNotes("");
       setShowAddModal(false);
-      // Reload subpage data
-      const subRes = await get<any>(`/api/modules/${SLUG}/subpages/${activeSubPage}`);
-      setPageData(subRes);
+      await loadData();
     } catch (err) {
       console.error("Failed to add audit record:", err);
     }
@@ -175,38 +232,60 @@ export default function SalesDistributionPage() {
             </span>
           </div>
           <p style={{ margin: 0, color: "#94a3b8", fontSize: 13 }}>
-            Continuous assurance over sales networks, scheme leakage, primary-vs-secondary reconciliation, claims & price integrity across 25 audit vectors.
+            FastAPI & SQLAlchemy backend engine providing continuous assurance over scheme leakage, primary vs secondary reconciliation & pricing integrity.
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 10 }}>
           <button
             className="btn"
             style={{
-              background: "rgba(255,255,255,0.1)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.2)",
+              background: runningAnalytics ? "#2563eb" : "rgba(16, 185, 129, 0.2)",
+              color: "#34d399",
+              border: "1px solid rgba(16, 185, 129, 0.4)",
               padding: "8px 14px",
+              fontWeight: 600,
             }}
-            onClick={() => {
-              setLoading(true);
-              get<any>(`/api/modules/${SLUG}/subpages/${activeSubPage}`).then((res) => {
-                setPageData(res);
-                setLoading(false);
-              });
-            }}
+            onClick={handleRunAnalytics}
+            disabled={runningAnalytics}
           >
-            🔄 Sync Data
+            {runningAnalytics ? "⚡ Running Rules..." : "⚡ Run Audit Analytics Engine"}
           </button>
           <button
             className="btn btn-primary"
             style={{ padding: "8px 16px" }}
             onClick={() => setShowAddModal(true)}
           >
-            ➕ Add Audit Record
+            ➕ Add Record
           </button>
         </div>
       </div>
+
+      {/* Notification Toast */}
+      {statusNotification && (
+        <div
+          style={{
+            padding: "12px 16px",
+            background: "#ecfdf5",
+            color: "#065f46",
+            border: "1px solid #a7f3d0",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>✅ {statusNotification}</span>
+          <button
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: "#065f46", fontWeight: 700 }}
+            onClick={() => setStatusNotification("")}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
@@ -271,9 +350,9 @@ export default function SalesDistributionPage() {
         </div>
       </div>
 
-      {/* Main Workspace Layout: Left 25 Sub-Page Sidebar + Right Active Sub-Page Workbench */}
+      {/* Workspace Layout: Left Sidebar + Right Subpage Workbench */}
       <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20 }}>
-        {/* Left Sub-Page Selector grouped into 5 domain categories */}
+        {/* Left Sidebar Subpage Selector */}
         <div
           className="card"
           style={{
@@ -336,8 +415,8 @@ export default function SalesDistributionPage() {
                         style={{
                           fontSize: 9,
                           fontWeight: 700,
-                          background: sub.badge.includes("High") ? "#fee2e2" : "#e0e7ff",
-                          color: sub.badge.includes("High") ? "#991b1b" : "#3730a3",
+                          background: sub.badge.includes("High") || sub.badge.includes("Red") ? "#fee2e2" : "#e0e7ff",
+                          color: sub.badge.includes("High") || sub.badge.includes("Red") ? "#991b1b" : "#3730a3",
                           padding: "2px 6px",
                           borderRadius: 10,
                           marginLeft: 4,
@@ -354,9 +433,9 @@ export default function SalesDistributionPage() {
           ))}
         </div>
 
-        {/* Right Active Sub-Page Details */}
+        {/* Right Active Subpage Table */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Subpage Header Bar & Filters */}
+          {/* Header & Filter Bar */}
           <div
             className="card"
             style={{
@@ -381,7 +460,7 @@ export default function SalesDistributionPage() {
               <input
                 className="input"
                 type="text"
-                placeholder="Filter table records..."
+                placeholder="Filter audit records..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 style={{ width: 220, fontSize: 12 }}
@@ -396,7 +475,7 @@ export default function SalesDistributionPage() {
             </div>
           </div>
 
-          {/* Dynamic Metrics Bar for Selected Subpage */}
+          {/* Dynamic Summary Cards */}
           {pageData?.summary_metrics && (
             <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(Object.keys(pageData.summary_metrics).length, 4)}, 1fr)`, gap: 12 }}>
               {Object.entries(pageData.summary_metrics).map(([mKey, mVal]) => (
@@ -412,10 +491,10 @@ export default function SalesDistributionPage() {
             </div>
           )}
 
-          {/* Subpage Table Content */}
+          {/* Subpage Data Table */}
           <div className="card" style={{ overflow: "hidden" }}>
             {loading ? (
-              <p style={{ padding: 24, textAlign: "center", color: "var(--slate)" }}>Loading audit records...</p>
+              <p style={{ padding: 24, textAlign: "center", color: "var(--slate)" }}>Loading audit records from database...</p>
             ) : filteredItems.length === 0 ? (
               <p style={{ padding: 24, textAlign: "center", color: "var(--slate)" }}>
                 No records matching filter.
@@ -430,6 +509,7 @@ export default function SalesDistributionPage() {
                           {col.replace(/_/g, " ")}
                         </th>
                       ))}
+                      <th style={{ padding: "10px 14px", textRight: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -454,13 +534,13 @@ export default function SalesDistributionPage() {
                               <span
                                 style={{
                                   background:
-                                    String(val).includes("High") || String(val).includes("Flagged") || String(val).includes("Rejected")
+                                    String(val).includes("High") || String(val).includes("Flagged") || String(val).includes("Rejected") || String(val).includes("Critical")
                                       ? "#fee2e2"
                                       : String(val).includes("Verified") || String(val).includes("Active") || String(val).includes("Effective")
                                       ? "#dcfce7"
                                       : "#fef3c7",
                                   color:
-                                    String(val).includes("High") || String(val).includes("Flagged") || String(val).includes("Rejected")
+                                    String(val).includes("High") || String(val).includes("Flagged") || String(val).includes("Rejected") || String(val).includes("Critical")
                                       ? "#991b1b"
                                       : String(val).includes("Verified") || String(val).includes("Active") || String(val).includes("Effective")
                                       ? "#166534"
@@ -473,13 +553,35 @@ export default function SalesDistributionPage() {
                               >
                                 {String(val)}
                               </span>
-                            ) : typeof val === "number" && (colName.includes("claimed") || colName.includes("eligible") || colName.includes("leakage") || colName.includes("val") || colName.includes("turnover") || colName.includes("impact") || colName.includes("exposure") || colName.includes("rebate") || colName.includes("limit") || colName.includes("outstanding")) ? (
+                            ) : typeof val === "number" && (colName.includes("claimed") || colName.includes("eligible") || colName.includes("leakage") || colName.includes("val") || colName.includes("turnover") || colName.includes("impact") || colName.includes("exposure") || colName.includes("rebate") || colName.includes("limit") || colName.includes("outstanding") || colName.includes("approved")) ? (
                               `₹${val.toLocaleString()}`
                             ) : (
                               String(val)
                             )}
                           </td>
                         ))}
+
+                        <td style={{ padding: "10px 14px", whiteSpace: "nowrap", textAlign: "right" }}>
+                          <button
+                            className="btn btn-ghost"
+                            style={{ padding: "4px 8px", fontSize: 11, marginRight: 6 }}
+                            onClick={() => {
+                              setSelectedRecord(row);
+                              setEscalateTitle(row.scheme_name || row.description || row.title || `Audit Finding - ${activeMeta?.name}`);
+                              setEscalateImpact(row.leakage_amount || row.financial_impact || row.variance_value || 150000);
+                              setShowEscalateModal(true);
+                            }}
+                          >
+                            ⚠️ Escalate Finding
+                          </button>
+                          <button
+                            className="btn btn-ghost"
+                            style={{ padding: "4px 8px", fontSize: 11, color: "#ef4444" }}
+                            onClick={() => handleDeleteRecord(row.id)}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -490,7 +592,115 @@ export default function SalesDistributionPage() {
         </div>
       </div>
 
-      {/* Modal for Adding Record */}
+      {/* Escalate Finding Modal */}
+      {showEscalateModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div className="card" style={{ width: 480, padding: 24, background: "#fff" }}>
+            <h3 style={{ margin: "0 0 16px 0", color: "var(--navy)" }}>⚠️ Escalate Anomaly to Audit Finding & CAPA</h3>
+            <form onSubmit={handleEscalateSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="field">
+                <label>Finding Title</label>
+                <input
+                  className="input"
+                  value={escalateTitle}
+                  onChange={(e) => setEscalateTitle(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="field">
+                  <label>Risk Category</label>
+                  <select
+                    className="input"
+                    value={escalateCategory}
+                    onChange={(e) => setEscalateCategory(e.target.value)}
+                  >
+                    <option value="Scheme Leakage">Scheme Leakage</option>
+                    <option value="Primary vs Secondary">Primary vs Secondary</option>
+                    <option value="Distributor Claims">Distributor Claims</option>
+                    <option value="Pricing Integrity">Pricing Integrity</option>
+                    <option value="Credit Limit">Credit Limit Breach</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Severity Level</label>
+                  <select
+                    className="input"
+                    value={escalateSeverity}
+                    onChange={(e) => setEscalateSeverity(e.target.value)}
+                  >
+                    <option value="Critical">Critical</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="field">
+                <label>Financial Impact (₹)</label>
+                <input
+                  className="input"
+                  type="number"
+                  value={escalateImpact}
+                  onChange={(e) => setEscalateImpact(Number(e.target.value))}
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <label>Audit Recommendation</label>
+                <textarea
+                  className="input"
+                  rows={2}
+                  value={escalateRec}
+                  onChange={(e) => setEscalateRec(e.target.value)}
+                  placeholder="Recommend corrective action and internal control improvement..."
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <label>CAPA Action Owner</label>
+                <input
+                  className="input"
+                  value={escalateOwner}
+                  onChange={(e) => setEscalateOwner(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setShowEscalateModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create Finding & CAPA
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Record Modal */}
       {showAddModal && (
         <div
           style={{
@@ -507,7 +717,7 @@ export default function SalesDistributionPage() {
           }}
         >
           <div className="card" style={{ width: 450, padding: 24, background: "#fff" }}>
-            <h3 style={{ margin: "0 0 16px 0", color: "var(--navy)" }}>Add Record to {activeMeta?.name}</h3>
+            <h3 style={{ margin: "0 0 16px 0", color: "var(--navy)" }}>Add Audit Record</h3>
             <form onSubmit={handleAddItem} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div className="field">
                 <label>Audit Record Title / Code</label>
@@ -521,7 +731,7 @@ export default function SalesDistributionPage() {
               </div>
 
               <div className="field">
-                <label>Auditor Field Notes / Financial Impact</label>
+                <label>Auditor Field Notes</label>
                 <textarea
                   className="input"
                   rows={3}

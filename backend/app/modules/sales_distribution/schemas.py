@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
@@ -38,3 +39,36 @@ class SubPageDataResponse(BaseModel):
     total_records: int
     summary_metrics: Dict[str, Any]
     items: List[Dict[str, Any]]
+
+
+class AnalyticsExecuteRequest(BaseModel):
+    threshold_amount: float = 50000.0
+
+
+class AnalyticsExecuteResponse(BaseModel):
+    status: str
+    new_red_flags_count: int
+    total_exposure_identified: float
+    executed_rules_count: int
+    message: str
+
+
+class FindingEscalateRequest(BaseModel):
+    title: str
+    risk_category: str
+    severity: str = "High"
+    financial_impact: float = 0.0
+    recommendation: str
+    action_owner: str
+    target_date: Optional[date] = None
+
+
+class FindingEscalateResponse(BaseModel):
+    finding_no: str
+    action_id: str
+    status: str
+    message: str
+
+
+class GenericRecordCreate(BaseModel):
+    data: Dict[str, Any]
