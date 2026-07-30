@@ -1,44 +1,32 @@
 :root {
-  /* Minimalist Premium Theme — Deep Black, Electric Purple & Vibrant Orange */
-  --bg-dark: #090a0f;
-  --bg-surface: #12131a;
-  --bg-card: #1a1b26;
-  --bg-card-hover: #222433;
-  --line: #2e3046;
-  --line-light: #202231;
+  /* Cap Corporate Executive Default Theme — Navy Authority + Gold Accent */
+  --navy: #0b1f3a;
+  --navy-deep: #071528;
+  --navy-tint: #eef1f6;
+  --gold: #b8862b;
+  --gold-strong: #9a6f1f;
+  --gold-tint: #faf4e6;
+  --ink: #0f172a;
+  --slate: #51607a;
+  --slate-soft: #7b8698;
+  --canvas: #f7f8fa;
+  --surface: #ffffff;
+  --line: #e5e8ee;
+  --line-soft: #eef0f4;
+  --success: #12805c;
+  --success-tint: #e7f4ef;
+  --danger: #b42318;
+  --danger-tint: #fdeceb;
 
-  /* Purple & Orange Palette */
-  --purple: #8b5cf6;
-  --purple-glow: #7c3aed;
-  --purple-deep: #6d28d9;
-  --purple-tint: rgba(139, 92, 246, 0.12);
-  --purple-border: rgba(139, 92, 246, 0.35);
-
-  --orange: #f97316;
-  --orange-glow: #ff6b00;
-  --orange-deep: #ea580c;
-  --orange-tint: rgba(249, 115, 22, 0.12);
-  --orange-border: rgba(249, 115, 22, 0.35);
-
-  /* Typography & Text */
-  --text-main: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
-
-  /* Status Colors */
-  --success: #10b981;
-  --success-tint: rgba(16, 185, 129, 0.15);
-  --danger: #ef4444;
-  --danger-tint: rgba(239, 68, 68, 0.15);
-
-  /* Elevation & Shadows */
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 8px 24px -4px rgba(124, 58, 237, 0.25), 0 4px 12px -2px rgba(249, 115, 22, 0.2);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.14);
 
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-head: "Outfit", var(--font);
+  --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-head: "Poppins", var(--font);
 }
 
 * {
@@ -49,21 +37,21 @@
 
 html, body, #root {
   height: 100%;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+  background-color: var(--canvas);
+  color: var(--ink);
   font-family: var(--font);
   font-size: 14.5px;
   -webkit-font-smoothing: antialiased;
 }
 
 body {
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-head);
-  color: #ffffff;
-  letter-spacing: -0.015em;
+  color: var(--navy);
+  letter-spacing: -0.01em;
   font-weight: 600;
 }
 
@@ -80,7 +68,7 @@ button {
   user-select: none;
 }
 
-/* ── Minimalist Interactive Buttons with Click Effects ── */
+/* ── Interactive Buttons with Click Micro-Animations ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -100,49 +88,42 @@ button {
   overflow: hidden;
 }
 
-/* Click / Press Shrink Micro-Animation */
+/* Click Press Micro-Animation */
 .btn:active {
   transform: scale(0.96) translateY(1px) !important;
 }
 
-/* Primary Purple Button */
 .btn-primary {
-  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+  background: var(--navy);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-xs);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  background: var(--navy-deep);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 14px rgba(11, 31, 58, 0.25);
 }
 
-/* Orange Energy Button */
-.btn-orange {
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+.btn-gold {
+  background: var(--gold);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-xs);
 }
-.btn-orange:hover {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+.btn-gold:hover {
+  background: var(--gold-strong);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+  box-shadow: 0 4px 14px rgba(184, 134, 43, 0.3);
 }
 
-/* Ghost Minimalist Button */
 .btn-ghost {
-  background: var(--bg-card);
-  color: var(--text-main);
+  background: var(--surface);
+  color: var(--navy);
   border: 1px solid var(--line);
 }
 .btn-ghost:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--purple);
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  background: var(--canvas);
+  border-color: #d3d8e2;
+  transform: translateY(-1px);
 }
 
 .btn-block {
@@ -153,12 +134,12 @@ button {
   font-size: 15px;
 }
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none !important;
 }
 
-/* ── Minimalist Form Controls ── */
+/* ── Form Controls ── */
 .field {
   margin-bottom: 16px;
 }
@@ -166,10 +147,10 @@ button {
   display: block;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--slate);
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .input, .select {
@@ -179,32 +160,28 @@ button {
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-family: inherit;
-  color: #ffffff;
-  background: var(--bg-card);
+  color: var(--ink);
+  background: var(--surface);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input::placeholder {
-  color: var(--text-dim);
+  color: var(--slate-soft);
 }
 .input:focus, .select:focus {
   outline: none;
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px var(--orange-tint), 0 0 12px var(--orange-border);
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
 }
 
-/* ── Dark Glassmorphism Cards ── */
+/* ── Cards & Badges ── */
 .card {
-  background: var(--bg-surface);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-}
-.card:hover {
-  border-color: rgba(139, 92, 246, 0.3);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Status Badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -213,43 +190,38 @@ button {
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
-.badge-purple {
-  background: var(--purple-tint);
-  color: #a78bfa;
-  border: 1px solid var(--purple-border);
-}
-.badge-orange {
-  background: var(--orange-tint);
-  color: #fb923c;
-  border: 1px solid var(--orange-border);
+.badge-gold {
+  background: var(--gold-tint);
+  color: var(--gold-strong);
 }
 .badge-success {
   background: var(--success-tint);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--success);
 }
 .badge-danger {
   background: var(--danger-tint);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+}
+.badge-slate {
+  background: var(--navy-tint);
+  color: var(--slate);
 }
 
-/* Alerts */
 .alert {
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-radius: var(--radius-sm);
-  font-size: 13.5px;
+  font-size: 14px;
   margin-bottom: 16px;
 }
 .alert-danger {
   background: var(--danger-tint);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+  border: 1px solid rgba(180, 35, 24, 0.18);
 }
 
-/* Minimalist Tables */
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -257,7 +229,7 @@ table {
 th, td {
   text-align: left;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--line-light);
+  border-bottom: 1px solid var(--line-soft);
   font-size: 13.5px;
 }
 tr:last-child td {
@@ -266,30 +238,14 @@ tr:last-child td {
 th {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  background: var(--bg-card);
+  letter-spacing: 0.05em;
+  color: var(--slate-soft);
+  background: var(--canvas);
   font-weight: 600;
 }
 tbody tr {
   transition: background 0.12s ease;
 }
 tbody tr:hover {
-  background: var(--bg-card);
-}
-
-/* Custom Minimalist Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-dark);
-}
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--purple);
+  background: var(--canvas);
 }
