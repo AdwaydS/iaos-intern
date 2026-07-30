@@ -187,6 +187,17 @@ export default function SalesDistributionPage() {
     }
   }
 
+  async function handleReloadSeed() {
+    try {
+      const res = await post<any>(`/api/modules/${SLUG}/reload-seed`, {});
+      setStatusNotification(res.message || "Fresh audit data reloaded successfully!");
+      await loadData();
+      setTimeout(() => setStatusNotification(""), 5000);
+    } catch (err) {
+      console.error("Reload seed failed:", err);
+    }
+  }
+
   const activeMeta = CATEGORIES.flatMap((c) => c.subPages).find((s) => s.key === activeSubPage);
 
   const filteredItems = pageData?.items
@@ -237,6 +248,19 @@ export default function SalesDistributionPage() {
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
+          <button
+            className="btn"
+            style={{
+              background: "rgba(255, 255, 255, 0.1)",
+              color: "#60a5fa",
+              border: "1px solid rgba(96, 165, 250, 0.4)",
+              padding: "8px 14px",
+              fontWeight: 600,
+            }}
+            onClick={handleReloadSeed}
+          >
+            🔄 Reload Audit Data
+          </button>
           <button
             className="btn"
             style={{
