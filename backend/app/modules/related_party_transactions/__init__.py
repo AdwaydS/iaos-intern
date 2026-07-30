@@ -1,1 +1,1 @@
-"""Related-Party Transactions module."""
+"""Related-Party Transactions module (catalog #28 — Finance Cycles)."""
