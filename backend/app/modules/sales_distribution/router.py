@@ -353,6 +353,12 @@ def escalate_to_finding(body: FindingEscalateRequest, current_user: CurrentUser,
     )
 
 
+@router.get("/items", response_model=list[ItemOut])
+def list_items(current_user: CurrentUser, db: DbSession):
+    q = tenant_scoped(db.query(SalesDistributionItem), current_user)
+    return [ItemOut.model_validate(i) for i in q.order_by(SalesDistributionItem.id.desc()).all()]
+
+
 @router.post("/items", response_model=ItemOut, status_code=status.HTTP_201_CREATED)
 def create_item(body: ItemCreate, current_user: CurrentUser, db: DbSession):
     item = SalesDistributionItem(title=body.title, notes=body.notes, tenant_id=current_user.tenant_id)
@@ -360,6 +366,17 @@ def create_item(body: ItemCreate, current_user: CurrentUser, db: DbSession):
     db.commit()
     db.refresh(item)
     return ItemOut.model_validate(item)
+
+
+@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item(item_id: int, current_user: CurrentUser, db: DbSession):
+    item = tenant_scoped(
+        db.query(SalesDistributionItem).filter(SalesDistributionItem.id == item_id), current_user
+    ).first()
+    if not item:
+        raise HTTPException(404, "Item not found")
+    db.delete(item)
+    db.commit()
 
 
 @router.post("/subpages/{page_key}/item", status_code=status.HTTP_201_CREATED)
