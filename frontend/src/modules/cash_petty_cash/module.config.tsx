@@ -4,9 +4,10 @@ import CashPettyCashPage from "./CashPettyCashPage";
 const config: ModuleConfig = {
   slug: "cash_petty_cash",
   title: "Cash & Petty Cash",
-  description: "Cash & Petty Cash — audit module.",
-  icon: "building",
-  group: "Treasury, Assets & Capital",
+  description:
+    "Controls over physical cash: imprest limits, surprise counts, voucher support, and statutory cash-payment limits.",
+  icon: "wallet",
+  group: "Finance & Close",
   component: CashPettyCashPage,
 };
 
