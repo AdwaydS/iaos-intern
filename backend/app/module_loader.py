@@ -53,6 +53,6 @@ def load_modules(app: FastAPI) -> list[LoadedModule]:
         manifest = getattr(router_mod, "MANIFEST", {"name": name})
         app.include_router(router, prefix=f"/api/modules/{name}", tags=[f"module:{name}"])
         loaded.append(LoadedModule(name=name, manifest=manifest))
-        print(f"[modules] loaded '{name}'  →  /api/modules/{name}")
+        print(f"[modules] loaded '{name}'  ->  /api/modules/{name}")
 
     return loaded
