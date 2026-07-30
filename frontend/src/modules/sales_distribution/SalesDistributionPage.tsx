@@ -533,7 +533,7 @@ export default function SalesDistributionPage() {
                           {col.replace(/_/g, " ")}
                         </th>
                       ))}
-                      <th style={{ padding: "10px 14px", textRight: "right" }}>Actions</th>
+                      <th style={{ padding: "10px 14px", textAlign: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,31 +1,44 @@
 :root {
-  /* Cap Corporate — white theme, navy authority + gold accent */
-  --navy: #0b1f3a;
-  --navy-deep: #071528;
-  --navy-tint: #eef1f6; /* light navy wash for active/hover surfaces */
-  --gold: #b8862b;
-  --gold-strong: #9a6f1f;
-  --gold-tint: #faf4e6;
-  --ink: #0f172a;
-  --slate: #51607a;
-  --slate-soft: #7b8698;
-  --canvas: #f7f8fa; /* app background */
-  --surface: #ffffff;
-  --line: #e5e8ee;
-  --line-soft: #eef0f4;
-  --success: #12805c;
-  --success-tint: #e7f4ef;
-  --danger: #b42318;
-  --danger-tint: #fdeceb;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
-  --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
-  --font-head: "Poppins", var(--font);
+  /* Minimalist Premium Theme — Deep Black, Electric Purple & Vibrant Orange */
+  --bg-dark: #090a0f;
+  --bg-surface: #12131a;
+  --bg-card: #1a1b26;
+  --bg-card-hover: #222433;
+  --line: #2e3046;
+  --line-light: #202231;
+
+  /* Purple & Orange Palette */
+  --purple: #8b5cf6;
+  --purple-glow: #7c3aed;
+  --purple-deep: #6d28d9;
+  --purple-tint: rgba(139, 92, 246, 0.12);
+  --purple-border: rgba(139, 92, 246, 0.35);
+
+  --orange: #f97316;
+  --orange-glow: #ff6b00;
+  --orange-deep: #ea580c;
+  --orange-tint: rgba(249, 115, 22, 0.12);
+  --orange-border: rgba(249, 115, 22, 0.35);
+
+  /* Typography & Text */
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+
+  /* Status Colors */
+  --success: #10b981;
+  --success-tint: rgba(16, 185, 129, 0.15);
+  --danger: #ef4444;
+  --danger-tint: rgba(239, 68, 68, 0.15);
+
+  /* Elevation & Shadows */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 8px 24px -4px rgba(124, 58, 237, 0.25), 0 4px 12px -2px rgba(249, 115, 22, 0.2);
+
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-head: "Outfit", var(--font);
 }
 
 * {
@@ -34,28 +47,23 @@
   padding: 0;
 }
 
-html,
-body,
-#root {
+html, body, #root {
   height: 100%;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font);
+  font-size: 14.5px;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  font-family: var(--font);
-  color: var(--ink);
-  background: var(--surface);
-  -webkit-font-smoothing: antialiased;
-  line-height: 1.55;
-  font-size: 15px;
+  line-height: 1.5;
 }
 
-h1,
-h2,
-h3,
-h4 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-head);
-  color: var(--navy);
-  letter-spacing: -0.01em;
+  color: #ffffff;
+  letter-spacing: -0.015em;
   font-weight: 600;
 }
 
@@ -69,167 +77,219 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  user-select: none;
 }
 
-::selection {
-  background: var(--gold-tint);
-}
-
-/* ── Buttons ─────────────────────────────────────────── */
+/* ── Minimalist Interactive Buttons with Click Effects ── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 20px;
+  padding: 10px 18px;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 14.5px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.15s ease,
+              box-shadow 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Click / Press Shrink Micro-Animation */
+.btn:active {
+  transform: scale(0.96) translateY(1px) !important;
+}
+
+/* Primary Purple Button */
 .btn-primary {
-  background: var(--navy);
-  color: #fff;
-  box-shadow: var(--shadow-xs);
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .btn-primary:hover {
-  background: var(--navy-deep);
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
 }
-.btn-gold {
-  background: var(--gold);
-  color: #fff;
+
+/* Orange Energy Button */
+.btn-orange {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.btn-gold:hover {
-  background: var(--gold-strong);
+.btn-orange:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
 }
+
+/* Ghost Minimalist Button */
 .btn-ghost {
-  background: var(--surface);
-  color: var(--navy);
+  background: var(--bg-card);
+  color: var(--text-main);
   border: 1px solid var(--line);
 }
 .btn-ghost:hover {
-  background: var(--canvas);
-  border-color: #d3d8e2;
+  background: var(--bg-card-hover);
+  border-color: var(--purple);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
+
 .btn-block {
   width: 100%;
 }
 .btn-lg {
-  padding: 14px 26px;
-  font-size: 15.5px;
+  padding: 13px 24px;
+  font-size: 15px;
 }
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
-/* ── Forms ───────────────────────────────────────────── */
+/* ── Minimalist Form Controls ── */
 .field {
   margin-bottom: 16px;
 }
 .field label {
   display: block;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--slate);
+  color: var(--text-muted);
   margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.input,
-.select {
+
+.input, .select {
   width: 100%;
-  padding: 11px 13px;
+  padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: 14px;
   font-family: inherit;
-  color: var(--ink);
-  background: var(--surface);
-  transition: border 0.15s ease, box-shadow 0.15s ease;
+  color: #ffffff;
+  background: var(--bg-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input::placeholder {
-  color: var(--slate-soft);
+  color: var(--text-dim);
 }
-.input:focus,
-.select:focus {
+.input:focus, .select:focus {
   outline: none;
-  border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--orange-tint), 0 0 12px var(--orange-border);
 }
 
-/* ── Surfaces ────────────────────────────────────────── */
+/* ── Dark Glassmorphism Cards ── */
 .card {
-  background: var(--surface);
+  background: var(--bg-surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
+/* Status Badges */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
-.badge-gold {
-  background: var(--gold-tint);
-  color: var(--gold-strong);
+.badge-purple {
+  background: var(--purple-tint);
+  color: #a78bfa;
+  border: 1px solid var(--purple-border);
+}
+.badge-orange {
+  background: var(--orange-tint);
+  color: #fb923c;
+  border: 1px solid var(--orange-border);
 }
 .badge-success {
   background: var(--success-tint);
-  color: var(--success);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 .badge-danger {
   background: var(--danger-tint);
-  color: var(--danger);
-}
-.badge-slate {
-  background: var(--navy-tint);
-  color: var(--slate);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+/* Alerts */
 .alert {
-  padding: 11px 14px;
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13.5px;
   margin-bottom: 16px;
 }
 .alert-danger {
   background: var(--danger-tint);
-  color: var(--danger);
-  border: 1px solid rgba(180, 35, 24, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+/* Minimalist Tables */
 table {
   width: 100%;
   border-collapse: collapse;
 }
-th,
-td {
+th, td {
   text-align: left;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--line-soft);
-  font-size: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-light);
+  font-size: 13.5px;
 }
 tr:last-child td {
   border-bottom: none;
 }
 th {
-  font-size: 11.5px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--slate-soft);
-  background: var(--canvas);
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--bg-card);
   font-weight: 600;
 }
 tbody tr {
   transition: background 0.12s ease;
 }
 tbody tr:hover {
-  background: var(--canvas);
+  background: var(--bg-card);
+}
+
+/* Custom Minimalist Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--purple);
 }

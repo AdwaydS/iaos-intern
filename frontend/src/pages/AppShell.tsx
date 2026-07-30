@@ -29,9 +29,22 @@ export default function AppShell() {
     : null;
   const activeGroup = modules.find((m) => m.slug === activeSlug)?.group ?? null;
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredModules = useMemo(() => {
+    if (!searchQuery.trim()) return modules;
+    const q = searchQuery.toLowerCase();
+    return modules.filter((m) =>
+      m.title.toLowerCase().includes(q) ||
+      (m.group ?? "").toLowerCase().includes(q)
+    );
+  }, [modules, searchQuery]);
+
+  const filteredGroups = useMemo(() => groupModules(filteredModules), [filteredModules]);
+
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const isOpen = (name: string) =>
-    open[name] ?? (name === activeGroup);
+    open[name] ?? (searchQuery.trim().length > 0 || name === activeGroup);
   const toggle = (name: string) =>
     setOpen((o) => ({ ...o, [name]: !isOpen(name) }));
 
@@ -49,6 +62,18 @@ export default function AppShell() {
           <strong>{tenant?.name ?? "Cap Corporate"}</strong>
         </div>
 
+        {!isSuper && (
+          <div className="shell-search-box">
+            <input
+              type="text"
+              className="shell-search-input"
+              placeholder="🔍 Search 86 modules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        )}
+
         <nav className="shell-nav">
           <NavLink to="/app" end className="shell-link">
             <Icon name={isSuper ? "trending-up" : "dashboard"} size={19} />
@@ -64,11 +89,13 @@ export default function AppShell() {
 
           {!isSuper && (
             <>
-              <div className="shell-nav-heading">Modules</div>
-              {groups.length === 0 && (
-                <span className="shell-empty">No modules installed yet</span>
+              <div className="shell-nav-heading">
+                {searchQuery ? "Search Results" : "Module Suites"}
+              </div>
+              {filteredGroups.length === 0 && (
+                <span className="shell-empty">No matching modules found</span>
               )}
-              {groups.map((g) => (
+              {filteredGroups.map((g) => (
                 <div key={g.name} className="shell-group">
                   <button
                     className="shell-group-head"
