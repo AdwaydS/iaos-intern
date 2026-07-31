@@ -1,104 +1,186 @@
-import { useEffect, useState } from "react";
-import { del, get, post } from "../../lib/api";
+import { lazy, Suspense, useState } from "react";
+import { Icon } from "../../components/Icon";
+import Breadcrumb from "./components/Breadcrumb";
+import { SUB_PAGES } from "./constants/pages";
+import { LoadingState } from "./components/StateViews";
+import "./budgeting.css";
 
-// Auto-generated stub for "Budgeting & Variance". Tenant-scoped CRUD — build on it.
-const SLUG = "budgeting_variance";
+const DashboardView = lazy(() => import("./views/DashboardView"));
+const BudgetVsActualView = lazy(() => import("./views/BudgetVsActualView"));
+const PreApprovalTimingView = lazy(() => import("./views/PreApprovalTimingView"));
+const ChronicOverspendView = lazy(() => import("./views/ChronicOverspendView"));
+const RebudgetRevisionView = lazy(() => import("./views/RebudgetRevisionView"));
+const AssumptionReasonablenessView = lazy(() => import("./views/AssumptionReasonablenessView"));
+const FlashVsFinalView = lazy(() => import("./views/FlashVsFinalView"));
+const RollingForecastView = lazy(() => import("./views/RollingForecastView"));
+const ZeroBasedBudgetView = lazy(() => import("./views/ZeroBasedBudgetView"));
+const CapexUtilisationView = lazy(() => import("./views/CapexUtilisationView"));
+const DepartmentalScorecardView = lazy(() => import("./views/DepartmentalScorecardView"));
+const UnspentParkedView = lazy(() => import("./views/UnspentParkedView"));
+const CostDriverTrendView = lazy(() => import("./views/CostDriverTrendView"));
+const ContingencyReserveView = lazy(() => import("./views/ContingencyReserveView"));
+const ForecastBiasView = lazy(() => import("./views/ForecastBiasView"));
+const ApprovalAuditTrailView = lazy(() => import("./views/ApprovalAuditTrailView"));
+const ScopeUniverseView = lazy(() => import("./views/ScopeUniverseView"));
+const RCMView = lazy(() => import("./views/RCMView"));
+const RuleLibraryView = lazy(() => import("./views/RuleLibraryView"));
+const DataSourceView = lazy(() => import("./views/DataSourceView"));
+const SamplingBuilderView = lazy(() => import("./views/SamplingBuilderView"));
+const ExceptionQueueView = lazy(() => import("./views/ExceptionQueueView"));
+const WorkingPapersView = lazy(() => import("./views/WorkingPapersView"));
+const FindingLogView = lazy(() => import("./views/FindingLogView"));
+const ActionTrackerView = lazy(() => import("./views/ActionTrackerView"));
 
-interface Item {
-  id: number;
-  title: string;
-  notes: string;
-}
+const VIEW_MAP: Record<number, React.ComponentType<{ onNavigate?: (id: number) => void }>> = {
+  1: DashboardView as any,
+  2: BudgetVsActualView,
+  3: PreApprovalTimingView,
+  4: ChronicOverspendView,
+  5: RebudgetRevisionView,
+  6: AssumptionReasonablenessView,
+  7: FlashVsFinalView,
+  8: RollingForecastView,
+  9: ZeroBasedBudgetView,
+  10: CapexUtilisationView,
+  11: DepartmentalScorecardView,
+  12: UnspentParkedView,
+  13: CostDriverTrendView,
+  14: ContingencyReserveView,
+  15: ForecastBiasView,
+  16: ApprovalAuditTrailView,
+  17: ScopeUniverseView,
+  18: RCMView,
+  19: RuleLibraryView,
+  20: DataSourceView,
+  21: SamplingBuilderView,
+  22: ExceptionQueueView,
+  23: WorkingPapersView,
+  24: FindingLogView,
+  25: ActionTrackerView,
+};
 
 export default function BudgetingVariancePage() {
-  const [items, setItems] = useState<Item[]>([]);
-  const [title, setTitle] = useState("");
-  const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [selectedPageId, setSelectedPageId] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState({ analysis: true, framework: true });
 
-  async function refresh() {
-    setItems(await get<Item[]>(`/api/modules/${SLUG}/items`));
-    setLoading(false);
-  }
-  useEffect(() => {
-    refresh();
-  }, []);
+  const activePage = SUB_PAGES.find((p) => p.id === selectedPageId) ?? SUB_PAGES[0];
+  const ActiveView = VIEW_MAP[selectedPageId] ?? DashboardView;
 
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title.trim()) return;
-    await post(`/api/modules/${SLUG}/items`, { title, notes });
-    setTitle("");
-    setNotes("");
-    refresh();
-  }
+  const filtered = SUB_PAGES.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const analysisPages = filtered.filter((p) => p.category === "analysis");
+  const frameworkPages = filtered.filter((p) => p.category === "framework");
+
+  const categoryLabel = activePage.category === "analysis"
+    ? "Budget Analysis & Variance"
+    : "Audit & Compliance Framework";
 
   return (
-    <div style={{ display: "grid", gap: 24, gridTemplateColumns: "1.5fr 1fr" }}>
-      <div className="card" style={{ overflow: "hidden", height: "fit-content" }}>
-        {loading ? (
-          <p style={{ padding: 18 }}>Loading…</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Notes</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it) => (
-                <tr key={it.id}>
-                  <td>{it.title}</td>
-                  <td style={{ color: "var(--slate)" }}>{it.notes || "—"}</td>
-                  <td style={{ textAlign: "right" }}>
-                    <button
-                      className="btn btn-ghost"
-                      style={{ padding: "6px 12px" }}
-                      onClick={async () => {
-                        await del(`/api/modules/${SLUG}/items/${it.id}`);
-                        refresh();
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr>
-                  <td colSpan={3} style={{ color: "var(--slate)" }}>
-                    No records yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+    <div>
+      <div className="page-head">
+        <h1>Budgeting & Variance Analysis</h1>
+        <p>Module 27 — KPI dashboards, variance analytics, exception queue, RCM, and working-papers evidence tracking.</p>
       </div>
 
-      <form className="card" style={{ padding: 22 }} onSubmit={add}>
-        <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Add record</h3>
-        <div className="field">
-          <label>Title</label>
-          <input
-            className="input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
+      <div className="bgt-layout">
+        <aside className="card bgt-subnav">
+          <div className="bgt-subnav-search">
+            <input
+              className="input"
+              placeholder="Search sub-pages…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Icon name="dashboard" size={16} />
+          </div>
+
+          <div className="bgt-subnav-groups">
+            <SubNavGroup
+              label={`Budget Analysis (${analysisPages.length})`}
+              expanded={expandedGroups.analysis}
+              onToggle={() => setExpandedGroups((g) => ({ ...g, analysis: !g.analysis }))}
+              pages={analysisPages}
+              selectedId={selectedPageId}
+              onSelect={setSelectedPageId}
+            />
+            <SubNavGroup
+              label={`Audit Framework (${frameworkPages.length})`}
+              expanded={expandedGroups.framework}
+              onToggle={() => setExpandedGroups((g) => ({ ...g, framework: !g.framework }))}
+              pages={frameworkPages}
+              selectedId={selectedPageId}
+              onSelect={setSelectedPageId}
+            />
+          </div>
+        </aside>
+
+        <main className="bgt-main">
+          <Breadcrumb
+            moduleTitle="Budgeting & Variance"
+            pageName={activePage.name}
+            category={categoryLabel}
+            pageId={activePage.id}
           />
+          <div className="bgt-page-header">
+            <span className="badge badge-slate bgt-page-badge">
+              {categoryLabel} — Page {activePage.id}
+            </span>
+            <h2>{activePage.name}</h2>
+            <p>{activePage.description}</p>
+          </div>
+
+          <Suspense fallback={<LoadingState />}>
+            {selectedPageId === 1 ? (
+              <DashboardView onNavigate={setSelectedPageId} />
+            ) : (
+              <ActiveView />
+            )}
+          </Suspense>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function SubNavGroup({
+  label, expanded, onToggle, pages, selectedId, onSelect,
+}: {
+  label: string;
+  expanded: boolean;
+  onToggle: () => void;
+  pages: typeof SUB_PAGES;
+  selectedId: number;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <div className="bgt-subnav-group">
+      <button type="button" className="bgt-subnav-group-head" onClick={onToggle}>
+        <span>{label}</span>
+        <Icon
+          name="chevron-right"
+          size={14}
+          style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.15s ease" }}
+        />
+      </button>
+      {expanded && (
+        <div className="bgt-subnav-items">
+          {pages.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`bgt-subnav-btn${selectedId === p.id ? " active" : ""}`}
+              onClick={() => onSelect(p.id)}
+            >
+              {p.id}. {p.name}
+            </button>
+          ))}
+          {pages.length === 0 && (
+            <span className="bgt-subnav-empty">No matching pages</span>
+          )}
         </div>
-        <div className="field">
-          <label>Notes</label>
-          <input
-            className="input"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-        <button className="btn btn-primary btn-block">Add</button>
-      </form>
+      )}
     </div>
   );
 }
