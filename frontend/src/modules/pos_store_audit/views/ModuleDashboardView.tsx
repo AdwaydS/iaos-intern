@@ -14,14 +14,14 @@ export default function ModuleDashboardView() {
     async function loadStats() {
       try {
         const [reconciliations, discounts, shrinkage] = await Promise.all([
-          get<any[]>(`/api/modules/pos_store_audit/reconciliations`),
-          get<any[]>(`/api/modules/pos_store_audit/discounts`),
+          get<any[]>(`/api/modules/pos_store_audit/pos-bank-reconciliation`),
+          get<any[]>(`/api/modules/pos_store_audit/discount-override`),
           get<any[]>(`/api/modules/pos_store_audit/shrinkage`),
         ]);
         setStats({
           totalStores: 48,
-          pendingReconciliations: reconciliations.filter((r: any) => r.status !== "Matched").length || 12,
-          flaggedDiscounts: discounts.filter((d: any) => d.flagged).length || 8,
+          pendingReconciliations: reconciliations.filter((r: any) => r.status?.toLowerCase() !== "matched" && r.status?.toLowerCase() !== "closed").length || 12,
+          flaggedDiscounts: discounts.filter((d: any) => ["high", "critical"].includes(d.risk_level?.toLowerCase())).length || 8,
           shrinkageEvents: shrinkage.length || 15,
         });
       } catch (err) {

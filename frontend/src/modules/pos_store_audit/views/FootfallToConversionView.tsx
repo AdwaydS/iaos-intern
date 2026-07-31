@@ -3,30 +3,33 @@ import { get, post, del } from "../../../lib/api";
 
 interface Footfall {
   id: number;
-  store_name: string;
-  record_date: string;
+  store_id: string;
+  date: string;
   footfall_count: number;
   transaction_count: number;
-  conversion_pct: number;
-  avg_ticket_size: number;
-  anomaly_score: number;
+  conversion_rate: number;
+  expected_revenue: number;
+  actual_revenue: number;
 }
 
 export default function FootfallToConversionView() {
   const [items, setItems] = useState<Footfall[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    record_date: "",
+    store_id: "",
+    date: "",
     footfall_count: "",
     transaction_count: "",
-    avg_ticket_size: "",
+    expected_revenue: "",
+    actual_revenue: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/footfall-conversion";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<Footfall[]>(`/api/modules/pos_store_audit/footfall`);
+      const data = await get<Footfall[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -39,22 +42,27 @@ export default function FootfallToConversionView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.record_date) return;
+    if (!form.store_id || !form.date) return;
     try {
-      await post(`/api/modules/pos_store_audit/footfall`, {
-        ...form,
-        footfall_count: Number(form.footfall_count),
-        transaction_count: Number(form.transaction_count),
-        avg_ticket_size: Number(form.avg_ticket_size),
+      const footfall_count = Number(form.footfall_count);
+      const transaction_count = Number(form.transaction_count);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        date: form.date,
+        footfall_count,
+        transaction_count,
+        conversion_rate: footfall_count > 0 ? Number((transaction_count / footfall_count * 100).toFixed(2)) : 0,
+        expected_revenue: Number(form.expected_revenue) || 0,
+        actual_revenue: Number(form.actual_revenue) || 0,
       });
-      setForm({ store_name: "", record_date: "", footfall_count: "", transaction_count: "", avg_ticket_size: "" });
+      setForm({ store_id: "", date: "", footfall_count: "", transaction_count: "", expected_revenue: "", actual_revenue: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/footfall/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -77,25 +85,25 @@ export default function FootfallToConversionView() {
                 <th>Footfall</th>
                 <th>Transactions</th>
                 <th>Conversion %</th>
-                <th>Avg Ticket</th>
-                <th>Anomaly Score</th>
+                <th>Expected Revenue</th>
+                <th>Actual Revenue</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.record_date}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.date}</td>
                   <td>{it.footfall_count}</td>
                   <td>{it.transaction_count}</td>
-                  <td>{it.conversion_pct}%</td>
-                  <td>{Number(it.avg_ticket_size).toLocaleString()}</td>
                   <td>
-                    <span style={{ color: it.anomaly_score > 0.7 ? "var(--danger)" : it.anomaly_score > 0.4 ? "var(--gold-strong)" : "var(--success)", fontWeight: 600 }}>
-                      {it.anomaly_score}
+                    <span style={{ color: it.conversion_rate < 25 ? "var(--danger)" : it.conversion_rate < 40 ? "var(--gold-strong)" : "var(--success)", fontWeight: 600 }}>
+                      {it.conversion_rate}%
                     </span>
                   </td>
+                  <td>{Number(it.expected_revenue).toLocaleString()}</td>
+                  <td>{Number(it.actual_revenue).toLocaleString()}</td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
@@ -112,12 +120,12 @@ export default function FootfallToConversionView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Record Footfall Data</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
-          <label>Record Date</label>
-          <input className="input" type="date" value={form.record_date} onChange={(e) => setForm({ ...form, record_date: e.target.value })} required />
+          <label>Date</label>
+          <input className="input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
         </div>
         <div className="field">
           <label>Footfall Count</label>
@@ -128,8 +136,12 @@ export default function FootfallToConversionView() {
           <input className="input" type="number" value={form.transaction_count} onChange={(e) => setForm({ ...form, transaction_count: e.target.value })} placeholder="e.g. 340" required />
         </div>
         <div className="field">
-          <label>Avg Ticket Size</label>
-          <input className="input" type="number" value={form.avg_ticket_size} onChange={(e) => setForm({ ...form, avg_ticket_size: e.target.value })} placeholder="e.g. 850" required />
+          <label>Expected Revenue</label>
+          <input className="input" type="number" value={form.expected_revenue} onChange={(e) => setForm({ ...form, expected_revenue: e.target.value })} placeholder="e.g. 900000" required />
+        </div>
+        <div className="field">
+          <label>Actual Revenue</label>
+          <input className="input" type="number" value={form.actual_revenue} onChange={(e) => setForm({ ...form, actual_revenue: e.target.value })} placeholder="e.g. 850000" required />
         </div>
         <button className="btn btn-primary btn-block">Save Footfall Record</button>
       </form>

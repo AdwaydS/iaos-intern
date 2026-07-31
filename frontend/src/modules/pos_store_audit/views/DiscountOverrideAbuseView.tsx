@@ -3,29 +3,35 @@ import { get, post, del } from "../../../lib/api";
 
 interface Discount {
   id: number;
-  store_name: string;
+  store_id: string;
   transaction_id: string;
+  discount_amount: number;
+  original_amount: number;
   discount_pct: number;
-  approved_by: string;
-  reason: string;
-  flagged: boolean;
+  override_reason: string;
+  cashier_id: string;
+  timestamp: string;
+  risk_level: string;
 }
 
 export default function DiscountOverrideAbuseView() {
   const [items, setItems] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
+    store_id: "",
     transaction_id: "",
+    original_amount: "",
     discount_pct: "",
-    approved_by: "",
-    reason: "",
+    override_reason: "",
+    cashier_id: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/discount-override";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<Discount[]>(`/api/modules/pos_store_audit/discounts`);
+      const data = await get<Discount[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -38,20 +44,29 @@ export default function DiscountOverrideAbuseView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.transaction_id) return;
+    if (!form.store_id || !form.transaction_id) return;
     try {
-      await post(`/api/modules/pos_store_audit/discounts`, {
-        ...form,
-        discount_pct: Number(form.discount_pct),
+      const original_amount = Number(form.original_amount);
+      const discount_pct = Number(form.discount_pct);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        transaction_id: form.transaction_id,
+        original_amount,
+        discount_pct,
+        discount_amount: Number((original_amount * discount_pct / 100).toFixed(2)),
+        override_reason: form.override_reason,
+        cashier_id: form.cashier_id,
+        timestamp: new Date().toISOString(),
+        risk_level: discount_pct > 20 ? "high" : discount_pct > 10 ? "medium" : "low",
       });
-      setForm({ store_name: "", transaction_id: "", discount_pct: "", approved_by: "", reason: "" });
+      setForm({ store_id: "", transaction_id: "", original_amount: "", discount_pct: "", override_reason: "", cashier_id: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/discounts/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -72,23 +87,25 @@ export default function DiscountOverrideAbuseView() {
                 <th>Store</th>
                 <th>Transaction ID</th>
                 <th>Discount %</th>
-                <th>Approved By</th>
+                <th>Discount Amount</th>
+                <th>Cashier</th>
                 <th>Reason</th>
-                <th>Flagged</th>
+                <th>Risk</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
+                  <td><strong>{it.store_id}</strong></td>
                   <td>{it.transaction_id}</td>
                   <td>{it.discount_pct}%</td>
-                  <td>{it.approved_by}</td>
-                  <td>{it.reason}</td>
+                  <td>{Number(it.discount_amount).toLocaleString()}</td>
+                  <td>{it.cashier_id}</td>
+                  <td>{it.override_reason}</td>
                   <td>
-                    <span className={`badge ${it.flagged ? "badge-danger" : "badge-success"}`}>
-                      {it.flagged ? "Yes" : "No"}
+                    <span className={`badge ${it.risk_level === "high" || it.risk_level === "critical" ? "badge-danger" : it.risk_level === "medium" ? "badge-gold" : "badge-success"}`}>
+                      {it.risk_level}
                     </span>
                   </td>
                   <td style={{ textAlign: "right" }}>
@@ -97,7 +114,7 @@ export default function DiscountOverrideAbuseView() {
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={7} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No discount override records found.</td></tr>
+                <tr><td colSpan={8} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No discount override records found.</td></tr>
               )}
             </tbody>
           </table>
@@ -107,24 +124,28 @@ export default function DiscountOverrideAbuseView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Log Discount Override</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
           <label>Transaction ID</label>
           <input className="input" value={form.transaction_id} onChange={(e) => setForm({ ...form, transaction_id: e.target.value })} placeholder="e.g. TXN-2026-00412" required />
         </div>
         <div className="field">
+          <label>Original Amount</label>
+          <input className="input" type="number" value={form.original_amount} onChange={(e) => setForm({ ...form, original_amount: e.target.value })} placeholder="e.g. 5000" required />
+        </div>
+        <div className="field">
           <label>Discount %</label>
           <input className="input" type="number" value={form.discount_pct} onChange={(e) => setForm({ ...form, discount_pct: e.target.value })} placeholder="e.g. 25" required />
         </div>
         <div className="field">
-          <label>Approved By</label>
-          <input className="input" value={form.approved_by} onChange={(e) => setForm({ ...form, approved_by: e.target.value })} placeholder="e.g. Store Manager" required />
+          <label>Cashier</label>
+          <input className="input" value={form.cashier_id} onChange={(e) => setForm({ ...form, cashier_id: e.target.value })} placeholder="e.g. Rajesh" required />
         </div>
         <div className="field">
-          <label>Reason</label>
-          <input className="input" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} placeholder="e.g. Customer complaint" required />
+          <label>Override Reason</label>
+          <input className="input" value={form.override_reason} onChange={(e) => setForm({ ...form, override_reason: e.target.value })} placeholder="e.g. Customer complaint" required />
         </div>
         <button className="btn btn-primary btn-block">Save Discount Record</button>
       </form>

@@ -3,31 +3,33 @@ import { get, post, del } from "../../../lib/api";
 
 interface EmployeePurchase {
   id: number;
-  store_name: string;
-  employee_name: string;
+  store_id: string;
   employee_id: string;
-  purchase_amount: number;
-  discount_availed: number;
-  approval_ref: string;
-  policy_compliant: boolean;
+  transaction_id: string;
+  discount_percent: number;
+  amount: number;
+  approved_by: string;
+  timestamp: string;
 }
 
 export default function EmployeePurchaseControlsView() {
   const [items, setItems] = useState<EmployeePurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    employee_name: "",
+    store_id: "",
     employee_id: "",
-    purchase_amount: "",
-    discount_availed: "",
-    approval_ref: "",
+    transaction_id: "",
+    amount: "",
+    discount_percent: "",
+    approved_by: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/employee-purchase";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<EmployeePurchase[]>(`/api/modules/pos_store_audit/employee_purchases`);
+      const data = await get<EmployeePurchase[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -40,21 +42,25 @@ export default function EmployeePurchaseControlsView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.employee_name) return;
+    if (!form.store_id || !form.employee_id) return;
     try {
-      await post(`/api/modules/pos_store_audit/employee_purchases`, {
-        ...form,
-        purchase_amount: Number(form.purchase_amount),
-        discount_availed: Number(form.discount_availed),
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        employee_id: form.employee_id,
+        transaction_id: form.transaction_id,
+        amount: Number(form.amount) || 0,
+        discount_percent: Number(form.discount_percent) || 0,
+        approved_by: form.approved_by,
+        timestamp: new Date().toISOString(),
       });
-      setForm({ store_name: "", employee_name: "", employee_id: "", purchase_amount: "", discount_availed: "", approval_ref: "" });
+      setForm({ store_id: "", employee_id: "", transaction_id: "", amount: "", discount_percent: "", approved_by: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/employee_purchases/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -73,36 +79,30 @@ export default function EmployeePurchaseControlsView() {
             <thead>
               <tr>
                 <th>Store</th>
-                <th>Employee</th>
                 <th>Employee ID</th>
-                <th>Purchase Amount</th>
-                <th>Discount Availed</th>
-                <th>Approval Ref</th>
-                <th>Policy Compliant</th>
+                <th>Transaction ID</th>
+                <th>Amount</th>
+                <th>Discount %</th>
+                <th>Approved By</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.employee_name}</td>
+                  <td><strong>{it.store_id}</strong></td>
                   <td>{it.employee_id}</td>
-                  <td>{Number(it.purchase_amount).toLocaleString()}</td>
-                  <td>{Number(it.discount_availed).toLocaleString()}</td>
-                  <td>{it.approval_ref}</td>
-                  <td>
-                    <span className={`badge ${it.policy_compliant ? "badge-success" : "badge-danger"}`}>
-                      {it.policy_compliant ? "Yes" : "No"}
-                    </span>
-                  </td>
+                  <td>{it.transaction_id}</td>
+                  <td>{Number(it.amount).toLocaleString()}</td>
+                  <td>{it.discount_percent}%</td>
+                  <td>{it.approved_by}</td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={8} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No employee purchase records found.</td></tr>
+                <tr><td colSpan={7} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No employee purchase records found.</td></tr>
               )}
             </tbody>
           </table>
@@ -112,28 +112,28 @@ export default function EmployeePurchaseControlsView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Record Employee Purchase</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
-        </div>
-        <div className="field">
-          <label>Employee Name</label>
-          <input className="input" value={form.employee_name} onChange={(e) => setForm({ ...form, employee_name: e.target.value })} placeholder="e.g. Rajesh Kumar" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
           <label>Employee ID</label>
           <input className="input" value={form.employee_id} onChange={(e) => setForm({ ...form, employee_id: e.target.value })} placeholder="e.g. EMP-00412" required />
         </div>
         <div className="field">
+          <label>Transaction ID</label>
+          <input className="input" value={form.transaction_id} onChange={(e) => setForm({ ...form, transaction_id: e.target.value })} placeholder="e.g. TXN-2026-00412" required />
+        </div>
+        <div className="field">
           <label>Purchase Amount</label>
-          <input className="input" type="number" value={form.purchase_amount} onChange={(e) => setForm({ ...form, purchase_amount: e.target.value })} placeholder="e.g. 5000" required />
+          <input className="input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="e.g. 5000" required />
         </div>
         <div className="field">
-          <label>Discount Availed</label>
-          <input className="input" type="number" value={form.discount_availed} onChange={(e) => setForm({ ...form, discount_availed: e.target.value })} placeholder="e.g. 500" required />
+          <label>Discount %</label>
+          <input className="input" type="number" value={form.discount_percent} onChange={(e) => setForm({ ...form, discount_percent: e.target.value })} placeholder="e.g. 10" required />
         </div>
         <div className="field">
-          <label>Approval Reference</label>
-          <input className="input" value={form.approval_ref} onChange={(e) => setForm({ ...form, approval_ref: e.target.value })} placeholder="e.g. APR-00412" required />
+          <label>Approved By</label>
+          <input className="input" value={form.approved_by} onChange={(e) => setForm({ ...form, approved_by: e.target.value })} placeholder="e.g. Store Manager" required />
         </div>
         <button className="btn btn-primary btn-block">Save Purchase</button>
       </form>

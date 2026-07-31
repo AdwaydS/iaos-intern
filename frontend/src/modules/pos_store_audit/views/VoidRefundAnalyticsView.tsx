@@ -3,31 +3,34 @@ import { get, post, del } from "../../../lib/api";
 
 interface VoidRecord {
   id: number;
-  store_name: string;
+  store_id: string;
   transaction_id: string;
-  void_type: string;
+  type: string;
   amount: number;
   reason: string;
-  cashier: string;
-  suspicious: boolean;
+  cashier_id: string;
+  timestamp: string;
+  risk_level: string;
 }
 
 export default function VoidRefundAnalyticsView() {
   const [items, setItems] = useState<VoidRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
+    store_id: "",
     transaction_id: "",
-    void_type: "Void",
+    type: "void",
     amount: "",
     reason: "",
-    cashier: "",
+    cashier_id: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/void-refund";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<VoidRecord[]>(`/api/modules/pos_store_audit/voids`);
+      const data = await get<VoidRecord[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -40,20 +43,27 @@ export default function VoidRefundAnalyticsView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.transaction_id) return;
+    if (!form.store_id || !form.transaction_id) return;
     try {
-      await post(`/api/modules/pos_store_audit/voids`, {
-        ...form,
-        amount: Number(form.amount),
+      const amount = Number(form.amount);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        transaction_id: form.transaction_id,
+        type: form.type,
+        amount,
+        reason: form.reason,
+        cashier_id: form.cashier_id,
+        timestamp: new Date().toISOString(),
+        risk_level: amount > 10000 ? "high" : amount > 5000 ? "medium" : "low",
       });
-      setForm({ store_name: "", transaction_id: "", void_type: "Void", amount: "", reason: "", cashier: "" });
+      setForm({ store_id: "", transaction_id: "", type: "void", amount: "", reason: "", cashier_id: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/voids/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -77,22 +87,22 @@ export default function VoidRefundAnalyticsView() {
                 <th>Amount</th>
                 <th>Reason</th>
                 <th>Cashier</th>
-                <th>Suspicious</th>
+                <th>Risk</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
+                  <td><strong>{it.store_id}</strong></td>
                   <td>{it.transaction_id}</td>
-                  <td><span className={`badge ${it.void_type === "Refund" ? "badge-gold" : "badge-slate"}`}>{it.void_type}</span></td>
+                  <td><span className={`badge ${it.type === "refund" ? "badge-gold" : "badge-slate"}`}>{it.type}</span></td>
                   <td>{Number(it.amount).toLocaleString()}</td>
                   <td>{it.reason}</td>
-                  <td>{it.cashier}</td>
+                  <td>{it.cashier_id}</td>
                   <td>
-                    <span className={`badge ${it.suspicious ? "badge-danger" : "badge-success"}`}>
-                      {it.suspicious ? "Yes" : "No"}
+                    <span className={`badge ${it.risk_level === "high" || it.risk_level === "critical" ? "badge-danger" : it.risk_level === "medium" ? "badge-gold" : "badge-success"}`}>
+                      {it.risk_level}
                     </span>
                   </td>
                   <td style={{ textAlign: "right" }}>
@@ -111,18 +121,18 @@ export default function VoidRefundAnalyticsView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Log Void/Refund</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
           <label>Transaction ID</label>
           <input className="input" value={form.transaction_id} onChange={(e) => setForm({ ...form, transaction_id: e.target.value })} placeholder="e.g. TXN-2026-00412" required />
         </div>
         <div className="field">
-          <label>Void Type</label>
-          <select className="select" value={form.void_type} onChange={(e) => setForm({ ...form, void_type: e.target.value })}>
-            <option>Void</option>
-            <option>Refund</option>
+          <label>Type</label>
+          <select className="select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+            <option value="void">Void</option>
+            <option value="refund">Refund</option>
           </select>
         </div>
         <div className="field">
@@ -135,7 +145,7 @@ export default function VoidRefundAnalyticsView() {
         </div>
         <div className="field">
           <label>Cashier</label>
-          <input className="input" value={form.cashier} onChange={(e) => setForm({ ...form, cashier: e.target.value })} placeholder="e.g. Rajesh" required />
+          <input className="input" value={form.cashier_id} onChange={(e) => setForm({ ...form, cashier_id: e.target.value })} placeholder="e.g. Rajesh" required />
         </div>
         <button className="btn btn-primary btn-block">Save Record</button>
       </form>

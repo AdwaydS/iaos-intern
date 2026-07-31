@@ -5,11 +5,11 @@ interface Transfer {
   id: number;
   from_store: string;
   to_store: string;
-  sku: string;
+  item_code: string;
   quantity: number;
   transfer_date: string;
-  authorised_by: string;
   status: string;
+  document_ref: string;
 }
 
 export default function StoreToStoreTransferView() {
@@ -18,15 +18,17 @@ export default function StoreToStoreTransferView() {
   const [form, setForm] = useState({
     from_store: "",
     to_store: "",
-    sku: "",
+    item_code: "",
     quantity: "",
-    authorised_by: "",
+    transfer_date: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/store-transfer";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<Transfer[]>(`/api/modules/pos_store_audit/transfers`);
+      const data = await get<Transfer[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -39,20 +41,24 @@ export default function StoreToStoreTransferView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.from_store || !form.to_store || !form.sku) return;
+    if (!form.from_store || !form.to_store || !form.item_code) return;
     try {
-      await post(`/api/modules/pos_store_audit/transfers`, {
-        ...form,
-        quantity: Number(form.quantity),
+      await post(ENDPOINT, {
+        from_store: form.from_store,
+        to_store: form.to_store,
+        item_code: form.item_code,
+        quantity: Number(form.quantity) || 0,
+        transfer_date: form.transfer_date,
+        status: "pending",
       });
-      setForm({ from_store: "", to_store: "", sku: "", quantity: "", authorised_by: "" });
+      setForm({ from_store: "", to_store: "", item_code: "", quantity: "", transfer_date: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/transfers/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -72,10 +78,10 @@ export default function StoreToStoreTransferView() {
               <tr>
                 <th>From Store</th>
                 <th>To Store</th>
-                <th>SKU</th>
+                <th>Item Code</th>
                 <th>Quantity</th>
                 <th>Transfer Date</th>
-                <th>Authorised By</th>
+                <th>Doc Ref</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -85,12 +91,12 @@ export default function StoreToStoreTransferView() {
                 <tr key={it.id}>
                   <td><strong>{it.from_store}</strong></td>
                   <td><strong>{it.to_store}</strong></td>
-                  <td>{it.sku}</td>
+                  <td>{it.item_code}</td>
                   <td>{it.quantity}</td>
                   <td>{it.transfer_date}</td>
-                  <td>{it.authorised_by}</td>
+                  <td>{it.document_ref || "—"}</td>
                   <td>
-                    <span className={`badge ${it.status === "Completed" ? "badge-success" : it.status === "In Transit" ? "badge-gold" : "badge-slate"}`}>
+                    <span className={`badge ${it.status === "completed" ? "badge-success" : it.status === "in_transit" ? "badge-gold" : "badge-slate"}`}>
                       {it.status}
                     </span>
                   </td>
@@ -118,16 +124,16 @@ export default function StoreToStoreTransferView() {
           <input className="input" value={form.to_store} onChange={(e) => setForm({ ...form, to_store: e.target.value })} placeholder="e.g. Store B" required />
         </div>
         <div className="field">
-          <label>SKU</label>
-          <input className="input" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. SKU-00412" required />
+          <label>Item Code</label>
+          <input className="input" value={form.item_code} onChange={(e) => setForm({ ...form, item_code: e.target.value })} placeholder="e.g. SKU-00412" required />
         </div>
         <div className="field">
           <label>Quantity</label>
           <input className="input" type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="e.g. 25" required />
         </div>
         <div className="field">
-          <label>Authorised By</label>
-          <input className="input" value={form.authorised_by} onChange={(e) => setForm({ ...form, authorised_by: e.target.value })} placeholder="e.g. Warehouse Manager" required />
+          <label>Transfer Date</label>
+          <input className="input" type="date" value={form.transfer_date} onChange={(e) => setForm({ ...form, transfer_date: e.target.value })} required />
         </div>
         <button className="btn btn-primary btn-block">Save Transfer</button>
       </form>

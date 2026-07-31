@@ -3,28 +3,31 @@ import { get, post, del } from "../../../lib/api";
 
 interface CashVariance {
   id: number;
-  store_name: string;
-  variance_date: string;
+  store_id: string;
+  date: string;
   expected_cash: number;
   actual_cash: number;
   variance: number;
-  trend: string;
+  trend_flag: string;
+  notes: string;
 }
 
 export default function CashVarianceAnalyticsView() {
   const [items, setItems] = useState<CashVariance[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    variance_date: "",
+    store_id: "",
+    date: "",
     expected_cash: "",
     actual_cash: "",
   });
 
+  const ENDPOINT = "/api/modules/pos_store_audit/cash-variance";
+
   async function load() {
     setLoading(true);
     try {
-      const data = await get<CashVariance[]>(`/api/modules/pos_store_audit/cash_variances`);
+      const data = await get<CashVariance[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -37,21 +40,26 @@ export default function CashVarianceAnalyticsView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.variance_date) return;
+    if (!form.store_id || !form.date) return;
     try {
-      await post(`/api/modules/pos_store_audit/cash_variances`, {
-        ...form,
-        expected_cash: Number(form.expected_cash),
-        actual_cash: Number(form.actual_cash),
+      const expected_cash = Number(form.expected_cash);
+      const actual_cash = Number(form.actual_cash);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        date: form.date,
+        expected_cash,
+        actual_cash,
+        variance: Number((expected_cash - actual_cash).toFixed(2)),
+        trend_flag: Math.abs(expected_cash - actual_cash) > 500 ? "elevated" : "normal",
       });
-      setForm({ store_name: "", variance_date: "", expected_cash: "", actual_cash: "" });
+      setForm({ store_id: "", date: "", expected_cash: "", actual_cash: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/cash_variances/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -70,7 +78,7 @@ export default function CashVarianceAnalyticsView() {
             <thead>
               <tr>
                 <th>Store</th>
-                <th>Variance Date</th>
+                <th>Date</th>
                 <th>Expected Cash</th>
                 <th>Actual Cash</th>
                 <th>Variance</th>
@@ -81,16 +89,20 @@ export default function CashVarianceAnalyticsView() {
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.variance_date}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.date}</td>
                   <td>{Number(it.expected_cash).toLocaleString()}</td>
                   <td>{Number(it.actual_cash).toLocaleString()}</td>
                   <td>
-                    <span style={{ color: it.variance < 0 ? "var(--danger)" : "var(--success)", fontWeight: 600 }}>
+                    <span style={{ color: it.variance < 0 ? "var(--danger)" : it.variance > 0 ? "var(--gold-strong)" : "var(--success)", fontWeight: 600 }}>
                       {Number(it.variance).toLocaleString()}
                     </span>
                   </td>
-                  <td>{it.trend}</td>
+                  <td>
+                    <span className={`badge ${it.trend_flag === "elevated" ? "badge-danger" : "badge-success"}`}>
+                      {it.trend_flag}
+                    </span>
+                  </td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
@@ -107,12 +119,12 @@ export default function CashVarianceAnalyticsView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Record Cash Variance</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
           <label>Variance Date</label>
-          <input className="input" type="date" value={form.variance_date} onChange={(e) => setForm({ ...form, variance_date: e.target.value })} required />
+          <input className="input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
         </div>
         <div className="field">
           <label>Expected Cash</label>

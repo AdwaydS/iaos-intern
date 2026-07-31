@@ -3,31 +3,32 @@ import { get, post, del } from "../../../lib/api";
 
 interface PriceCheck {
   id: number;
-  store_name: string;
-  sku: string;
-  product_name: string;
+  store_id: string;
+  item_code: string;
   shelf_price: number;
   system_price: number;
   variance: number;
-  checked_by: string;
+  test_date: string;
+  status: string;
 }
 
 export default function PriceIntegrityTestingView() {
   const [items, setItems] = useState<PriceCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    sku: "",
-    product_name: "",
+    store_id: "",
+    item_code: "",
     shelf_price: "",
     system_price: "",
-    checked_by: "",
+    test_date: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/price-integrity";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<PriceCheck[]>(`/api/modules/pos_store_audit/price_checks`);
+      const data = await get<PriceCheck[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -40,21 +41,28 @@ export default function PriceIntegrityTestingView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.sku) return;
+    if (!form.store_id || !form.item_code) return;
     try {
-      await post(`/api/modules/pos_store_audit/price_checks`, {
-        ...form,
-        shelf_price: Number(form.shelf_price),
-        system_price: Number(form.system_price),
+      const shelf_price = Number(form.shelf_price);
+      const system_price = Number(form.system_price);
+      const variance = Number((shelf_price - system_price).toFixed(2));
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        item_code: form.item_code,
+        shelf_price,
+        system_price,
+        variance,
+        test_date: form.test_date,
+        status: variance === 0 ? "pass" : "fail",
       });
-      setForm({ store_name: "", sku: "", product_name: "", shelf_price: "", system_price: "", checked_by: "" });
+      setForm({ store_id: "", item_code: "", shelf_price: "", system_price: "", test_date: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/price_checks/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -73,21 +81,20 @@ export default function PriceIntegrityTestingView() {
             <thead>
               <tr>
                 <th>Store</th>
-                <th>SKU</th>
-                <th>Product</th>
+                <th>Item Code</th>
                 <th>Shelf Price</th>
                 <th>System Price</th>
                 <th>Variance</th>
-                <th>Checked By</th>
+                <th>Test Date</th>
+                <th>Status</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.sku}</td>
-                  <td>{it.product_name}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.item_code}</td>
                   <td>{Number(it.shelf_price).toLocaleString()}</td>
                   <td>{Number(it.system_price).toLocaleString()}</td>
                   <td>
@@ -95,7 +102,10 @@ export default function PriceIntegrityTestingView() {
                       {Number(it.variance).toLocaleString()}
                     </span>
                   </td>
-                  <td>{it.checked_by}</td>
+                  <td>{it.test_date}</td>
+                  <td>
+                    <span className={`badge ${it.status === "pass" ? "badge-success" : "badge-danger"}`}>{it.status}</span>
+                  </td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
@@ -112,16 +122,12 @@ export default function PriceIntegrityTestingView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Record Price Check</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
-          <label>SKU</label>
-          <input className="input" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. SKU-00412" required />
-        </div>
-        <div className="field">
-          <label>Product Name</label>
-          <input className="input" value={form.product_name} onChange={(e) => setForm({ ...form, product_name: e.target.value })} placeholder="e.g. Premium Basmati Rice" required />
+          <label>Item Code</label>
+          <input className="input" value={form.item_code} onChange={(e) => setForm({ ...form, item_code: e.target.value })} placeholder="e.g. SKU-00412" required />
         </div>
         <div className="field">
           <label>Shelf Price</label>
@@ -132,8 +138,8 @@ export default function PriceIntegrityTestingView() {
           <input className="input" type="number" value={form.system_price} onChange={(e) => setForm({ ...form, system_price: e.target.value })} placeholder="e.g. 475" required />
         </div>
         <div className="field">
-          <label>Checked By</label>
-          <input className="input" value={form.checked_by} onChange={(e) => setForm({ ...form, checked_by: e.target.value })} placeholder="e.g. Audit Staff" required />
+          <label>Test Date</label>
+          <input className="input" type="date" value={form.test_date} onChange={(e) => setForm({ ...form, test_date: e.target.value })} required />
         </div>
         <button className="btn btn-primary btn-block">Save Price Check</button>
       </form>

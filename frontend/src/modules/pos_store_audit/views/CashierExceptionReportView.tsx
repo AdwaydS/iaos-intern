@@ -3,29 +3,30 @@ import { get, post, del } from "../../../lib/api";
 
 interface CashierEvent {
   id: number;
-  store_name: string;
-  cashier_name: string;
-  event_type: string;
-  event_time: string;
-  register_id: string;
-  notes: string;
+  store_id: string;
+  cashier_id: string;
+  exception_type: string;
+  count: number;
+  period: string;
 }
 
 export default function CashierExceptionReportView() {
   const [items, setItems] = useState<CashierEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    cashier_name: "",
-    event_type: "No-Sale",
-    register_id: "",
-    notes: "",
+    store_id: "",
+    cashier_id: "",
+    exception_type: "no_sale",
+    count: "",
+    period: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/cashier-exception";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<CashierEvent[]>(`/api/modules/pos_store_audit/cashier_events`);
+      const data = await get<CashierEvent[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -38,17 +39,23 @@ export default function CashierExceptionReportView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.cashier_name) return;
+    if (!form.store_id || !form.cashier_id) return;
     try {
-      await post(`/api/modules/pos_store_audit/cashier_events`, form);
-      setForm({ store_name: "", cashier_name: "", event_type: "No-Sale", register_id: "", notes: "" });
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        cashier_id: form.cashier_id,
+        exception_type: form.exception_type,
+        count: Number(form.count) || 0,
+        period: form.period || "current",
+      });
+      setForm({ store_id: "", cashier_id: "", exception_type: "no_sale", count: "", period: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/cashier_events/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -68,29 +75,27 @@ export default function CashierExceptionReportView() {
               <tr>
                 <th>Store</th>
                 <th>Cashier</th>
-                <th>Event Type</th>
-                <th>Event Time</th>
-                <th>Register ID</th>
-                <th>Notes</th>
+                <th>Exception Type</th>
+                <th>Count</th>
+                <th>Period</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.cashier_name}</td>
-                  <td><span className={`badge ${it.event_type === "Override" ? "badge-danger" : it.event_type === "No-Sale" ? "badge-gold" : "badge-slate"}`}>{it.event_type}</span></td>
-                  <td>{it.event_time}</td>
-                  <td>{it.register_id}</td>
-                  <td>{it.notes}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.cashier_id}</td>
+                  <td><span className={`badge ${it.exception_type === "override" ? "badge-danger" : it.exception_type === "no_sale" ? "badge-gold" : "badge-slate"}`}>{it.exception_type}</span></td>
+                  <td>{it.count}</td>
+                  <td>{it.period}</td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={7} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No cashier events found.</td></tr>
+                <tr><td colSpan={6} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No cashier events found.</td></tr>
               )}
             </tbody>
           </table>
@@ -100,29 +105,29 @@ export default function CashierExceptionReportView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Log Cashier Event</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
-          <label>Cashier Name</label>
-          <input className="input" value={form.cashier_name} onChange={(e) => setForm({ ...form, cashier_name: e.target.value })} placeholder="e.g. Priya Singh" required />
+          <label>Cashier</label>
+          <input className="input" value={form.cashier_id} onChange={(e) => setForm({ ...form, cashier_id: e.target.value })} placeholder="e.g. Priya Singh" required />
         </div>
         <div className="field">
-          <label>Event Type</label>
-          <select className="select" value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value })}>
-            <option>No-Sale</option>
-            <option>Drawer-Open</option>
-            <option>Cash-Pickup</option>
-            <option>Override</option>
+          <label>Exception Type</label>
+          <select className="select" value={form.exception_type} onChange={(e) => setForm({ ...form, exception_type: e.target.value })}>
+            <option value="no_sale">No-Sale</option>
+            <option value="drawer_open">Drawer-Open</option>
+            <option value="cash_pickup">Cash-Pickup</option>
+            <option value="override">Override</option>
           </select>
         </div>
         <div className="field">
-          <label>Register ID</label>
-          <input className="input" value={form.register_id} onChange={(e) => setForm({ ...form, register_id: e.target.value })} placeholder="e.g. REG-03" required />
+          <label>Count</label>
+          <input className="input" type="number" value={form.count} onChange={(e) => setForm({ ...form, count: e.target.value })} placeholder="e.g. 3" required />
         </div>
         <div className="field">
-          <label>Notes</label>
-          <input className="input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="e.g. Manager approval obtained" />
+          <label>Period</label>
+          <input className="input" value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value })} placeholder="e.g. Mar 2026" required />
         </div>
         <button className="btn btn-primary btn-block">Save Event</button>
       </form>

@@ -3,33 +3,35 @@ import { get, post, del } from "../../../lib/api";
 
 interface InventoryCount {
   id: number;
-  store_name: string;
-  sku: string;
-  product_name: string;
+  store_id: string;
+  count_date: string;
+  item_code: string;
   system_qty: number;
   physical_qty: number;
-  variance_qty: number;
-  variance_value: number;
-  count_date: string;
+  variance: number;
   counted_by: string;
+  verified_by: string;
 }
 
 export default function PhysicalCountVsSystemView() {
   const [items, setItems] = useState<InventoryCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    sku: "",
-    product_name: "",
+    store_id: "",
+    item_code: "",
     system_qty: "",
     physical_qty: "",
+    count_date: "",
     counted_by: "",
+    verified_by: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/physical-count";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<InventoryCount[]>(`/api/modules/pos_store_audit/inventory_counts`);
+      const data = await get<InventoryCount[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -42,21 +44,28 @@ export default function PhysicalCountVsSystemView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.sku) return;
+    if (!form.store_id || !form.item_code) return;
     try {
-      await post(`/api/modules/pos_store_audit/inventory_counts`, {
-        ...form,
-        system_qty: Number(form.system_qty),
-        physical_qty: Number(form.physical_qty),
+      const system_qty = Number(form.system_qty);
+      const physical_qty = Number(form.physical_qty);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        item_code: form.item_code,
+        system_qty,
+        physical_qty,
+        variance: system_qty - physical_qty,
+        count_date: form.count_date,
+        counted_by: form.counted_by,
+        verified_by: form.verified_by,
       });
-      setForm({ store_name: "", sku: "", product_name: "", system_qty: "", physical_qty: "", counted_by: "" });
+      setForm({ store_id: "", item_code: "", system_qty: "", physical_qty: "", count_date: "", counted_by: "", verified_by: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/inventory_counts/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -75,36 +84,34 @@ export default function PhysicalCountVsSystemView() {
             <thead>
               <tr>
                 <th>Store</th>
-                <th>SKU</th>
-                <th>Product</th>
+                <th>Item Code</th>
                 <th>System Qty</th>
                 <th>Physical Qty</th>
-                <th>Variance Qty</th>
-                <th>Variance Value</th>
+                <th>Variance</th>
                 <th>Count Date</th>
                 <th>Counted By</th>
+                <th>Verified By</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.sku}</td>
-                  <td>{it.product_name}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.item_code}</td>
                   <td>{it.system_qty}</td>
                   <td>{it.physical_qty}</td>
-                  <td style={{ color: it.variance_qty !== 0 ? "var(--danger)" : "var(--success)", fontWeight: 600 }}>{it.variance_qty}</td>
-                  <td>{Number(it.variance_value).toLocaleString()}</td>
+                  <td style={{ color: it.variance !== 0 ? "var(--danger)" : "var(--success)", fontWeight: 600 }}>{it.variance}</td>
                   <td>{it.count_date}</td>
                   <td>{it.counted_by}</td>
+                  <td>{it.verified_by || "—"}</td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn btn-ghost" style={{ padding: "5px 10px", fontSize: 12 }} onClick={() => remove(it.id)}>Delete</button>
                   </td>
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={10} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No inventory count records found.</td></tr>
+                <tr><td colSpan={9} style={{ color: "var(--slate)", textAlign: "center", padding: 30 }}>No inventory count records found.</td></tr>
               )}
             </tbody>
           </table>
@@ -114,16 +121,12 @@ export default function PhysicalCountVsSystemView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Record Inventory Count</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
-          <label>SKU</label>
-          <input className="input" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. SKU-00412" required />
-        </div>
-        <div className="field">
-          <label>Product Name</label>
-          <input className="input" value={form.product_name} onChange={(e) => setForm({ ...form, product_name: e.target.value })} placeholder="e.g. Basmati Rice 5kg" required />
+          <label>Item Code</label>
+          <input className="input" value={form.item_code} onChange={(e) => setForm({ ...form, item_code: e.target.value })} placeholder="e.g. SKU-00412" required />
         </div>
         <div className="field">
           <label>System Qty</label>
@@ -134,8 +137,16 @@ export default function PhysicalCountVsSystemView() {
           <input className="input" type="number" value={form.physical_qty} onChange={(e) => setForm({ ...form, physical_qty: e.target.value })} placeholder="e.g. 98" required />
         </div>
         <div className="field">
+          <label>Count Date</label>
+          <input className="input" type="date" value={form.count_date} onChange={(e) => setForm({ ...form, count_date: e.target.value })} required />
+        </div>
+        <div className="field">
           <label>Counted By</label>
           <input className="input" value={form.counted_by} onChange={(e) => setForm({ ...form, counted_by: e.target.value })} placeholder="e.g. Audit Team" required />
+        </div>
+        <div className="field">
+          <label>Verified By</label>
+          <input className="input" value={form.verified_by} onChange={(e) => setForm({ ...form, verified_by: e.target.value })} placeholder="e.g. Store Manager" />
         </div>
         <button className="btn btn-primary btn-block">Save Count</button>
       </form>

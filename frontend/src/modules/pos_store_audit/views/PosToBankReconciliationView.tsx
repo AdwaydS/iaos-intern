@@ -3,28 +3,31 @@ import { get, post, del } from "../../../lib/api";
 
 interface Reconciliation {
   id: number;
-  store_name: string;
-  sales_date: string;
-  pos_total: number;
-  bank_credit: number;
+  store_id: string;
+  sale_date: string;
+  total_sales: number;
+  total_settlements: number;
   variance: number;
   status: string;
+  notes: string;
 }
 
 export default function PosToBankReconciliationView() {
   const [items, setItems] = useState<Reconciliation[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    store_name: "",
-    sales_date: "",
-    pos_total: "",
-    bank_credit: "",
+    store_id: "",
+    sale_date: "",
+    total_sales: "",
+    total_settlements: "",
   });
+
+  const ENDPOINT = "/api/modules/pos_store_audit/pos-bank-reconciliation";
 
   async function load() {
     setLoading(true);
     try {
-      const data = await get<Reconciliation[]>(`/api/modules/pos_store_audit/reconciliations`);
+      const data = await get<Reconciliation[]>(ENDPOINT);
       setItems(data);
     } catch (err) {
       console.error(err);
@@ -37,21 +40,26 @@ export default function PosToBankReconciliationView() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.store_name || !form.sales_date) return;
+    if (!form.store_id || !form.sale_date) return;
     try {
-      await post(`/api/modules/pos_store_audit/reconciliations`, {
-        ...form,
-        pos_total: Number(form.pos_total),
-        bank_credit: Number(form.bank_credit),
+      const total_sales = Number(form.total_sales);
+      const total_settlements = Number(form.total_settlements);
+      await post(ENDPOINT, {
+        store_id: form.store_id,
+        sale_date: form.sale_date,
+        total_sales,
+        total_settlements,
+        variance: Number((total_sales - total_settlements).toFixed(2)),
+        status: "open",
       });
-      setForm({ store_name: "", sales_date: "", pos_total: "", bank_credit: "" });
+      setForm({ store_id: "", sale_date: "", total_sales: "", total_settlements: "" });
       load();
     } catch (err) { console.error(err); }
   }
 
   async function remove(id: number) {
     try {
-      await del(`/api/modules/pos_store_audit/reconciliations/${id}`);
+      await del(`${ENDPOINT}/${id}`);
       load();
     } catch (err) { console.error(err); }
   }
@@ -81,17 +89,17 @@ export default function PosToBankReconciliationView() {
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td><strong>{it.store_name}</strong></td>
-                  <td>{it.sales_date}</td>
-                  <td>{Number(it.pos_total).toLocaleString()}</td>
-                  <td>{Number(it.bank_credit).toLocaleString()}</td>
+                  <td><strong>{it.store_id}</strong></td>
+                  <td>{it.sale_date}</td>
+                  <td>{Number(it.total_sales).toLocaleString()}</td>
+                  <td>{Number(it.total_settlements).toLocaleString()}</td>
                   <td>
-                    <span style={{ color: it.variance < 0 ? "var(--danger)" : it.variance > 0 ? "var(--success)" : "inherit", fontWeight: 600 }}>
+                    <span style={{ color: it.variance < 0 ? "var(--danger)" : it.variance > 0 ? "var(--gold-strong)" : "var(--success)", fontWeight: 600 }}>
                       {Number(it.variance).toLocaleString()}
                     </span>
                   </td>
                   <td>
-                    <span className={`badge ${it.status === "Matched" ? "badge-success" : it.status === "Unmatched" ? "badge-danger" : "badge-gold"}`}>
+                    <span className={`badge ${it.status === "matched" ? "badge-success" : it.status === "unmatched" ? "badge-danger" : "badge-gold"}`}>
                       {it.status}
                     </span>
                   </td>
@@ -111,20 +119,20 @@ export default function PosToBankReconciliationView() {
       <form className="card" style={{ padding: 22, height: "fit-content" }} onSubmit={add}>
         <h3 style={{ color: "var(--navy)", marginBottom: 14 }}>Add Reconciliation</h3>
         <div className="field">
-          <label>Store Name</label>
-          <input className="input" value={form.store_name} onChange={(e) => setForm({ ...form, store_name: e.target.value })} placeholder="e.g. Downtown Store" required />
+          <label>Store</label>
+          <input className="input" value={form.store_id} onChange={(e) => setForm({ ...form, store_id: e.target.value })} placeholder="e.g. Downtown Store" required />
         </div>
         <div className="field">
           <label>Sales Date</label>
-          <input className="input" type="date" value={form.sales_date} onChange={(e) => setForm({ ...form, sales_date: e.target.value })} required />
+          <input className="input" type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} required />
         </div>
         <div className="field">
           <label>POS Total</label>
-          <input className="input" type="number" value={form.pos_total} onChange={(e) => setForm({ ...form, pos_total: e.target.value })} placeholder="e.g. 125000" required />
+          <input className="input" type="number" value={form.total_sales} onChange={(e) => setForm({ ...form, total_sales: e.target.value })} placeholder="e.g. 125000" required />
         </div>
         <div className="field">
           <label>Bank Credit</label>
-          <input className="input" type="number" value={form.bank_credit} onChange={(e) => setForm({ ...form, bank_credit: e.target.value })} placeholder="e.g. 124500" required />
+          <input className="input" type="number" value={form.total_settlements} onChange={(e) => setForm({ ...form, total_settlements: e.target.value })} placeholder="e.g. 124500" required />
         </div>
         <button className="btn btn-primary btn-block">Save Reconciliation</button>
       </form>
