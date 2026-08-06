@@ -1,0 +1,1 @@
+"""Statutory Dues module."""

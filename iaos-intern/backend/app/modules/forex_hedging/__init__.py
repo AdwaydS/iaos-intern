@@ -1,0 +1,1 @@
+"""Forex & Hedging module."""

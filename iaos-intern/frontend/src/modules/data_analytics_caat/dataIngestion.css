@@ -1,0 +1,23 @@
+.ingestion-grid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:24px;
+}
+
+.upload-box{
+border:2px dashed var(--line);
+padding:60px;
+border-radius:16px;
+text-align:center;
+background:white;
+transition:.2s;
+}
+
+.upload-box:hover{
+border-color:var(--navy);
+background:#fafafa;
+}
+
+.dataset-table{
+margin-top:25px;
+}

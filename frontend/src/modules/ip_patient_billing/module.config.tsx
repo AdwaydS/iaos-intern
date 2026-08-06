@@ -3,11 +3,12 @@ import IpPatientBillingPage from "./IpPatientBillingPage";
 
 const config: ModuleConfig = {
   slug: "ip_patient_billing",
-  title: "Patient Billing",
-  description: "Patient Billing — audit module.",
-  icon: "grid",
+  title: "Patient Billing & Revenue Cycle",
+  description:
+    "Assurance over the hospital revenue cycle: charge capture, package/tariff integrity, TPA/insurance claims and revenue leakage at every touchpoint.",
+  icon: "wallet",
   group: "Industry Packs",
-  industry: "Healthcare/Pharma",
+  industry: "Healthcare",
   component: IpPatientBillingPage,
 };
 
